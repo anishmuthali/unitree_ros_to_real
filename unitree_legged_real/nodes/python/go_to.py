@@ -30,6 +30,8 @@ class GoToJointPosition():
 
         for ii in range(self.Njoints):
             self.joint_pos_init[ii] = msg.motorState[ii].q
+        print("Inside callback..")
+        print("self.joint_pos_init: ",self.joint_pos_init)
 
     def update_target(self,joint_pos_target):
         self.joint_pos_target = joint_pos_target
@@ -52,7 +54,7 @@ class GoToJointPosition():
 
         print("Reading current robot position from the topic {0:s} ...".format(self.topic_low_state))
         self.update_initial_position = True
-        time.sleep(1.0)
+        time.sleep(2.0)
         self.update_initial_position = False
 
         print("Current robot position: ",self.joint_pos_init)
@@ -68,7 +70,7 @@ def main(joint_pos_target):
 
     """
 
-    rospy.init_node("go_to", anonymous=True)
+    rospy.init_node("go_to", anonymous=False)
     rate_freq = 500 # Hz
     rate = rospy.Rate(rate_freq) # Hz
 
@@ -89,7 +91,10 @@ def main(joint_pos_target):
     Nsteps_total = 4000
     Nsteps_transition = 3000
     print("Moving to target within {0:f} seconds; the program will exit after {0:f} seconds ...".format(1/rate_freq*Nsteps_transition,1/rate_freq*Nsteps_total))
+    input("Press any key to continue ...")
     time.sleep(1.0)
+    # ii = 0
+    # while(not rospy.is_shutdown() and ii < Nsteps_total):
     for ii in range(Nsteps_total):
 
         joint_pos_des = go2_joint_position.interpolation_linear(ind=ii,Nsteps=Nsteps_transition)
@@ -103,6 +108,7 @@ def main(joint_pos_target):
 
         # if use_raisim_visualization: visualize_raisim.update_visualization(joint_pos_curr,joint_pos_des)
 
+        # ii += 1
         rate.sleep()
 
     return;
@@ -115,7 +121,7 @@ if __name__ == "__main__":
     joint_pos_target = np.array([0.0136, 0.7304, -1.4505, -0.0118, 0.7317, -1.4437, 0.0105, 0.6590, -1.3903, -0.0102, 0.6563, -1.3944])
 
     # Target position we want to reach: Lying-down position
-    joint_pos_target = np.array([-0.303926,1.15218,-2.69135,0.346799,1.17985,-2.73951,-0.348858,1.15957,-2.75885,0.348737,1.20456,-2.79926])
+    # joint_pos_target = np.array([-0.303926,1.15218,-2.69135,0.346799,1.17985,-2.73951,-0.348858,1.15957,-2.75885,0.348737,1.20456,-2.79926])
 
     main(joint_pos_target)
 

@@ -21,7 +21,7 @@ include_directories(
 set(CMAKE_CXX_FLAGS "-O3")
 
 # set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk) # amarco added
-set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added
+set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added
 
 include_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/include) # amarco edited
 link_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/lib) # amarco edited

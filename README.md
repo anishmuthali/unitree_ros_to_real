@@ -11,6 +11,9 @@ git checkout -b dev_amarco v3.4.0
 
 
 
+### Notes
+1. The raspberry pi inside the robot (ssh pi@192.168.123.161) has a real time kernel. The following info is printed out on the terminal when you log in via ssh:
+`Linux raspberrypi 5.4.81-rt45-v8+ #9 SMP PREEMPT_RT Mon Dec 28 00:13:29 PST 2020 aarch64`
 
 
 Packages Version: v3.4.0

@@ -26,6 +26,11 @@ public:
 
     }
 
+    ~PositionHolderControlLoop(){
+
+        std::cout << "Destroying PositionHolderControlLoop class ...\n";
+    }
+
     void update_joint_pos_des_hold();
     void send_position2hold();
     void go2target_linear_interpolation( const Eigen::Ref<Vector12d>& joint_pos_init, 

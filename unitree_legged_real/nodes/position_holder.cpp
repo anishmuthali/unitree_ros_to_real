@@ -15,7 +15,16 @@
 
 #include "convert.h" // Needed for ToRos
 
+// #include <signal.h>
+
 using namespace UNITREE_LEGGED_SDK;
+
+
+// void mySigintHandler(int sig){
+
+//     ros::shutdown();
+// }
+
 
 int main(int argc, char *argv[])
 {
@@ -45,7 +54,7 @@ int main(int argc, char *argv[])
     int Ndur_read_init_pos = std::stoi(argv[3]);
     int loop_frequency = std::stoi(argv[4]);
     
-    ros::init(argc, argv, "position_holder");
+    ros::init(argc, argv, "node_position_holder");
 
     std::cout << "WARNING: Control level is set to LOW-level." << std::endl
               << "Make sure the robot is hung up." << std::endl
@@ -61,7 +70,7 @@ int main(int argc, char *argv[])
     // typedef Eigen::Matrix<double, 12, 1> Vector12d; // Column vector by default
     Vector12d P_gains;
     Vector12d D_gains;
-    P_gains << 20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0;
+    P_gains << 40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0;
     D_gains << 2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0;
 
     position_holder.set_PD_gains(P_gains,D_gains);
@@ -98,6 +107,15 @@ int main(int argc, char *argv[])
     std::cout << "Initial position:\n";
     position_holder.print_joint_info("(initial) position2hold",position_holder.joint_pos_des_hold);
 
+
+    std::cout << "WARNING: Control level is set to LOW-level." << std::endl
+              << "Make sure the robot is hung up." << std::endl
+              << "Press Enter to continue..." << std::endl;
+    std::cin.ignore();
+
+    // // This overrides the default sigint handler (must be set after the first node is created):
+    // signal(SIGINT, mySigintHandler);
+
     // Send to the robot whatever is inside position2hold using the pre-defined PD gains
     // position2hold is only modified by the lowCmdCallback, which is listening to incoming messages from the network
     std::cout << "reading position2hold from the subscriber and sending it to the robot indefinitely ...\n";
@@ -115,6 +133,8 @@ int main(int argc, char *argv[])
         ros::spinOnce(); // Go through the callbacks and fill position2hold with the commands collected from the network in position_holder.lowCmdCallback()
         loop_rate.sleep();
     }
+
+    std::cout << "Finishing position_holder ...\n";
 
 
     return 0;
