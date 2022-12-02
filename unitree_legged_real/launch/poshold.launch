@@ -1,0 +1,16 @@
+<launch>
+    <arg name="topic_subscribe_to_user_commands" default="low_cmd_to_robot"/>
+    <arg name="topic_publish_robot_state" default="low_state_from_robot"/>
+    <arg name="Nsteps_read_initial_position" default="1000"/>
+    <arg name="loop_frequency" value="500"/>
+
+    <node pkg="unitree_legged_real"
+          type="position_holder" 
+          name="node_position_holder"
+          respawn="false"
+          output="screen"
+          args="$(arg topic_subscribe_to_user_commands) 
+                $(arg topic_publish_robot_state)
+                $(arg Nsteps_read_initial_position)
+                $(arg loop_frequency)" />
+</launch>
