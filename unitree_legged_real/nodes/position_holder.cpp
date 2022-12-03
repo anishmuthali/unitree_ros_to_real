@@ -86,6 +86,9 @@ int main(int argc, char *argv[])
     std::cout << "Receiving LCM low-level state data from the robot and publishing it ...\n";
     std::cout << "Subscribing to low-level commands from the network and sending them to the robot via LCM ...\n";
 
+    std::cout << "Sending just the low-level mode and the levelflag\n";
+    position_holder.send_mode_only();
+
     // Read initial position, do not send anything:
     long motiontime = 0;
     // int Ndur_read_init_pos = 1000;
@@ -106,7 +109,6 @@ int main(int argc, char *argv[])
 
     std::cout << "Initial position:\n";
     position_holder.print_joint_info("(initial) position2hold",position_holder.joint_pos_des_hold);
-
 
     std::cout << "WARNING: Control level is set to LOW-level." << std::endl
               << "Make sure the robot is hung up." << std::endl
