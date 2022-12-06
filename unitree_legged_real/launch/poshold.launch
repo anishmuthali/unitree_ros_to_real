@@ -8,7 +8,7 @@
 
     <node pkg="unitree_legged_real"
           type="position_holder" 
-          name="node_position_holder_3333"
+          name="node_position_holder"
           respawn="false"
           output="screen"
           required="true">

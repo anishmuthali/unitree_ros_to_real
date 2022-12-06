@@ -49,7 +49,7 @@ void PositionHolderControlLoop::read_initial_position(int Nsteps_timeout, int ti
     double time_sleep_total_seconds = double(time_sleep_ms*Nsteps_timeout)/1000.0;
     std::cout << "Sending to the robot: 'levelFlag = LOWLEVEL (0xFF)' and 'mode = 0x0A'\n";
     std::cout << "Looping until current joint position is received ...\n";
-    std::cout << "Looping for ~" << time_sleep_total_seconds << " seconds, at rate: " << double(1./(double(time_sleep_ms)*1000.0)) << " Hz\n";
+    std::cout << "Looping for ~" << time_sleep_total_seconds << " seconds, at rate: " << double(1000.0/double(time_sleep_ms)) << " Hz\n";
     while (ii < Nsteps_timeout){
 
         if(verbosity == true)

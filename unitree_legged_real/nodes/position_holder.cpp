@@ -13,70 +13,18 @@
 #include <unitree_legged_msgs/LowState.h>
 #include <position_holder_go1.hpp>
 
+#include <data_parser.hpp>
+
 #include "convert.h" // Needed for ToRos
 
 // #include <signal.h>
 
-// #include "data_parser.hpp"
-
 using namespace UNITREE_LEGGED_SDK;
-
 
 // void mySigintHandler(int sig){
 
 //     ros::shutdown();
 // }
-
-// typedef Eigen::Matrix<double, 12, 1> Vector12d; // Column vector by default
-
-template<typename T>
-void parse_input_argument(const ros::NodeHandle & nh, const std::string & var_name, T & var_out){
-
-    // http://wiki.ros.org/roscpp/Overview/Names%20and%20Node%20Information#Manipulating_Names
-    // http://docs.ros.org/en/melodic/api/roscpp/html/classros_1_1NodeHandle.html
-
-    // std::string this_node;
-    // this_node = ros::this_node::getName();
-    // std::cout << "this_node: " << this_node << "\n";
-
-    // std::string resolved_name;
-    // resolved_name = nh.resolveName(var_name); // Resolve a name using the NodeHandle's namespace. Returns ns+var_name; ns="/" by default, can be overridden in the launch file
-    // std::cout << "resolved_name: " << resolved_name << "\n";
-
-
-    // if(nh.getParam(var_name,var)){
-    // std::string name_param_full("/"+node_name+"/"+var_name);
-    std::string name_param_full = ros::this_node::getName() + nh.resolveName(var_name);
-    if(nh.getParam(name_param_full,var_out)){
-        std::cout << name_param_full << ": " << var_out << "\n";
-    }
-    else{
-        std::cout << name_param_full << " failed to load because it doesn't exist...\n";
-    }
-
-    return;
-}
-
-void parse_input_vector(const ros::NodeHandle & nh, const std::string & vec_name, Eigen::VectorXd & vec_out){
-
-    // http://wiki.ros.org/roscpp/Overview/Names%20and%20Node%20Information#Manipulating_Names
-    // http://docs.ros.org/en/melodic/api/roscpp/html/classros_1_1NodeHandle.html
-
-    std::string name_param_full = ros::this_node::getName() + nh.resolveName(vec_name);
-    Eigen::IOFormat clean_format = Eigen::IOFormat(4, 0, ", ", "\n", "[", "]");
-
-    std::vector<double> vec_doubles;
-    if(nh.getParam(name_param_full,vec_doubles)){
-        vec_out = Eigen::Map<Eigen::VectorXd>(vec_doubles.data(), vec_doubles.size());
-        std::cout << name_param_full << ": " << vec_out.transpose().format(clean_format) << "\n";
-    }
-    else{
-        std::cout << name_param_full << " failed to load because it doesn't exist...\n";
-    }
-
-    return;
-}
-
 
 int main(int argc, char *argv[])
 {
@@ -85,24 +33,25 @@ int main(int argc, char *argv[])
 
     ros::NodeHandle nh;
 
-    // DataParser data_parser(nh);
+    DataParser data_parser(nh);
     
     // Parsing input arguments:
+    std::cout << "Loading parameters:\n";
     std::string topic_subscribe_to_user_commands, topic_publish_robot_state;
-    parse_input_argument(nh,"topic_subscribe_to_user_commands",topic_subscribe_to_user_commands);
-    parse_input_argument(nh,"topic_publish_robot_state",topic_publish_robot_state);
+    data_parser.get("topic_subscribe_to_user_commands",topic_subscribe_to_user_commands);
+    data_parser.get("topic_publish_robot_state",topic_publish_robot_state);
     
     int loop_frequency, Nsteps_timeout, time_sleep_ms;
-    parse_input_argument(nh,"loop_frequency",loop_frequency);
-    parse_input_argument(nh,"Nsteps_timeout",Nsteps_timeout);
-    parse_input_argument(nh,"time_sleep_ms",time_sleep_ms);
+    data_parser.get("loop_frequency",loop_frequency);
+    data_parser.get("Nsteps_timeout",Nsteps_timeout);
+    data_parser.get("time_sleep_ms",time_sleep_ms);
     
     Eigen::VectorXd P_gains, D_gains;
-    parse_input_vector(nh,"P_gains",P_gains);
-    parse_input_vector(nh,"D_gains",D_gains);
+    data_parser.get_vec("P_gains",P_gains);
+    data_parser.get_vec("D_gains",D_gains);
     
     bool verbosity;
-    parse_input_argument(nh,"verbosity",verbosity);
+    data_parser.get("verbosity",verbosity);
 
     std::cout << "Initializing Go1 interface ...\n";
     std::cout << "WARNING: Control level is set to LOW-level." << std::endl

@@ -24,14 +24,11 @@ public:
                                 const Eigen::Ref<Vector12d>& D_gains,
                                 int Nsteps_timeout = 20, 
                                 int time_sleep_ms = 500,
-                                bool verbosity = true) : RobotInterfaceGo1(){
-
-        this->joint_pos_des_hold.setZero();
+                                bool verbosity = false) :   RobotInterfaceGo1(){
 
         this->set_PD_gains(P_gains,D_gains);
-        // int Nsteps_timeout = 20; // Have a larget timeout
-        // int time_sleep_ms = 500; // Seconds
-        // bool verbosity = true;
+        
+        this->joint_pos_des_hold.setZero();
         this->read_initial_position(Nsteps_timeout,time_sleep_ms,this->joint_pos_des_hold,verbosity);
     }
 
@@ -48,15 +45,14 @@ public:
 
     void lowCmdCallback(const unitree_legged_msgs::LowCmd::ConstPtr &msg);
 
-    void read_initial_position(int Nsteps_timeout, int time_sleep_ms, Eigen::Ref<Vector12d> joint_pos_init, bool verbosity = false);
 
     void mode_change(void);
 
     // Desired position to hold:
     Vector12d joint_pos_des_hold;
 
-    // Flags:
-    bool is_desired_position_all_zeros;
+private:
+    void read_initial_position(int Nsteps_timeout, int time_sleep_ms, Eigen::Ref<Vector12d> joint_pos_init, bool verbosity = false);
 
 };
 
