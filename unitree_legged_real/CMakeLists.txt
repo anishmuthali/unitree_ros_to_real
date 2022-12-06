@@ -20,8 +20,8 @@ include_directories(
 
 set(CMAKE_CXX_FLAGS "-O3")
 
-# set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk) # amarco added
-set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added
+set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (ubuntu VM)
+# set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (robot lab)
 
 include_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/include) # amarco edited
 link_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/lib) # amarco edited
@@ -41,7 +41,6 @@ add_dependencies(position_holder ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 add_executable(stand_up nodes/stand_up.cpp)
 target_link_libraries(stand_up ${EXTRA_LIBS} ${catkin_LIBRARIES})
 add_dependencies(stand_up ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 
 
 # Based on nodes/examples_unitree/position_mode.cpp; using their LCM threads

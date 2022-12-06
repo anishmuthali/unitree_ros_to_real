@@ -17,6 +17,8 @@
 
 // #include <signal.h>
 
+// #include "data_parser.hpp"
+
 using namespace UNITREE_LEGGED_SDK;
 
 
@@ -25,55 +27,92 @@ using namespace UNITREE_LEGGED_SDK;
 //     ros::shutdown();
 // }
 
+// typedef Eigen::Matrix<double, 12, 1> Vector12d; // Column vector by default
+
+template<typename T>
+void parse_input_argument(const ros::NodeHandle & nh, const std::string & var_name, T & var_out){
+
+    // http://wiki.ros.org/roscpp/Overview/Names%20and%20Node%20Information#Manipulating_Names
+    // http://docs.ros.org/en/melodic/api/roscpp/html/classros_1_1NodeHandle.html
+
+    // std::string this_node;
+    // this_node = ros::this_node::getName();
+    // std::cout << "this_node: " << this_node << "\n";
+
+    // std::string resolved_name;
+    // resolved_name = nh.resolveName(var_name); // Resolve a name using the NodeHandle's namespace. Returns ns+var_name; ns="/" by default, can be overridden in the launch file
+    // std::cout << "resolved_name: " << resolved_name << "\n";
+
+
+    // if(nh.getParam(var_name,var)){
+    // std::string name_param_full("/"+node_name+"/"+var_name);
+    std::string name_param_full = ros::this_node::getName() + nh.resolveName(var_name);
+    if(nh.getParam(name_param_full,var_out)){
+        std::cout << name_param_full << ": " << var_out << "\n";
+    }
+    else{
+        std::cout << name_param_full << " failed to load because it doesn't exist...\n";
+    }
+
+    return;
+}
+
+void parse_input_vector(const ros::NodeHandle & nh, const std::string & vec_name, Eigen::VectorXd & vec_out){
+
+    // http://wiki.ros.org/roscpp/Overview/Names%20and%20Node%20Information#Manipulating_Names
+    // http://docs.ros.org/en/melodic/api/roscpp/html/classros_1_1NodeHandle.html
+
+    std::string name_param_full = ros::this_node::getName() + nh.resolveName(vec_name);
+    Eigen::IOFormat clean_format = Eigen::IOFormat(4, 0, ", ", "\n", "[", "]");
+
+    std::vector<double> vec_doubles;
+    if(nh.getParam(name_param_full,vec_doubles)){
+        vec_out = Eigen::Map<Eigen::VectorXd>(vec_doubles.data(), vec_doubles.size());
+        std::cout << name_param_full << ": " << vec_out.transpose().format(clean_format) << "\n";
+    }
+    else{
+        std::cout << name_param_full << " failed to load because it doesn't exist...\n";
+    }
+
+    return;
+}
+
 
 int main(int argc, char *argv[])
 {
-
-    // Input arguments:
-    for(int ii=0;ii < argc; ii++){
-        std::cout << "argv[" << ii << "]: " << argv[ii] << "\n";
-    }
-
-    if(argc != (4+3)){
-        std::cout << "Expected 4 input arguments, but " << argc-3 << " were passed!\n";
-        // std::cout << "Use: roslaunch"
-        return 0;
-    }
-
-    // argv[0]: /home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/devel/lib/unitree_legged_real/position_holder
-    // argv[1]: low_cmd_to_robot_launch
-    // argv[2]: low_state_from_robot_launch
-    // argv[3]: 1000
-    // argv[4]: 500
-    // argv[5]: __name:=node_position_holder
-    // argv[6]: __log:=/home/ubuntu/.ros/log/4d8191f8-7213-11ed-9f47-87121fcf993e/node_position_holder-1.log
-
-
-    std::string topic_subscribe_to_user_commands(argv[1]);
-    std::string topic_publish_robot_state(argv[2]);
-    int Ndur_read_init_pos = std::stoi(argv[3]);
-    int loop_frequency = std::stoi(argv[4]);
     
-    ros::init(argc, argv, "node_position_holder");
+    ros::init(argc, argv, "node_position_holder"); // Node name is overriden with field 'name' inside th launch file
 
+    ros::NodeHandle nh;
+
+    // DataParser data_parser(nh);
+    
+    // Parsing input arguments:
+    std::string topic_subscribe_to_user_commands, topic_publish_robot_state;
+    parse_input_argument(nh,"topic_subscribe_to_user_commands",topic_subscribe_to_user_commands);
+    parse_input_argument(nh,"topic_publish_robot_state",topic_publish_robot_state);
+    
+    int loop_frequency, Nsteps_timeout, time_sleep_ms;
+    parse_input_argument(nh,"loop_frequency",loop_frequency);
+    parse_input_argument(nh,"Nsteps_timeout",Nsteps_timeout);
+    parse_input_argument(nh,"time_sleep_ms",time_sleep_ms);
+    
+    Eigen::VectorXd P_gains, D_gains;
+    parse_input_vector(nh,"P_gains",P_gains);
+    parse_input_vector(nh,"D_gains",D_gains);
+    
+    bool verbosity;
+    parse_input_argument(nh,"verbosity",verbosity);
+
+    std::cout << "Initializing Go1 interface ...\n";
     std::cout << "WARNING: Control level is set to LOW-level." << std::endl
               << "Make sure the robot is hung up." << std::endl
               << "Press Enter to continue..." << std::endl;
     std::cin.ignore();
 
-    ros::NodeHandle nh;
     ros::Rate loop_rate(loop_frequency); // amarco: Frequency in Hz
 
-    std::cout << "Initializing Go1 interface ...\n";
-    PositionHolderControlLoop position_holder;
-
-    // typedef Eigen::Matrix<double, 12, 1> Vector12d; // Column vector by default
-    Vector12d P_gains;
-    Vector12d D_gains;
-    P_gains << 40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0;
-    D_gains << 2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0,2.0;
-
-    position_holder.set_PD_gains(P_gains,D_gains);
+    PositionHolderControlLoop position_holder(P_gains,D_gains,Nsteps_timeout,time_sleep_ms,verbosity);
     position_holder.set_deltaT(1./(double)loop_frequency); // seconds
 
     // Initialize global variables:
@@ -85,30 +124,6 @@ int main(int argc, char *argv[])
 
     std::cout << "Receiving LCM low-level state data from the robot and publishing it ...\n";
     std::cout << "Subscribing to low-level commands from the network and sending them to the robot via LCM ...\n";
-
-    std::cout << "Sending just the low-level mode and the levelflag\n";
-    position_holder.send_mode_only();
-
-    // Read initial position, do not send anything:
-    long motiontime = 0;
-    // int Ndur_read_init_pos = 1000;
-    std::cout << "Reading initial position for " << Ndur_read_init_pos << " seconds ...\n";
-    while (motiontime < Ndur_read_init_pos){
-
-        position_holder.CollectObservations();
-        position_holder.update_all_observations();
-
-        position_holder.write_current_position_into_position2hold(); // Just read, do not send anything
-
-        motiontime++;
-        loop_rate.sleep();
-
-        // No need to call ros::spinOnce() through the callbacks because we're not interested in listening commands from the network yet
-        // We need to read the robot's current joint position and store it in position2hold
-    }
-
-    std::cout << "Initial position:\n";
-    position_holder.print_joint_info("(initial) position2hold",position_holder.joint_pos_des_hold);
 
     std::cout << "WARNING: Control level is set to LOW-level." << std::endl
               << "Make sure the robot is hung up." << std::endl
@@ -137,7 +152,8 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "Finishing position_holder ...\n";
-
+    delete(&nh); // amarco: not sure if this is the right way...
+    ros::shutdown();
 
     return 0;
 }
