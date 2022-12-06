@@ -29,6 +29,10 @@ public:
     	this->clean_format = Eigen::IOFormat(4, 0, ", ", "\n", "[", "]");
     }
 
+    ~DataParser(){
+        std::cout << "Destroying DataParser class ...\n";
+    }
+
 	template<typename T>
 	void get(const std::string & var_name, T & var_out);
 
