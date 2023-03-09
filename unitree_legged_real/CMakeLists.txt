@@ -71,3 +71,8 @@ add_dependencies(stand_up_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 # add_executable(walk_lcm nodes/examples_unitree/walk_mode.cpp)
 # target_link_libraries(walk_lcm ${EXTRA_LIBS} ${catkin_LIBRARIES})
 # add_dependencies(walk_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(walk_lcm_mod nodes/examples_unitree/walk_mode_mode.cpp)
+target_link_libraries(walk_lcm_mod ${EXTRA_LIBS} ${catkin_LIBRARIES})
+add_dependencies(walk_lcm_mod ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
