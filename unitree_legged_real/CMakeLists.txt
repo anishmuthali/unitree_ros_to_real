@@ -20,8 +20,8 @@ include_directories(
 
 set(CMAKE_CXX_FLAGS "-O3")
 
-set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu VM)
-# set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu, robot lab)
+# set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu VM)
+set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu, robot lab)
 
 include_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/include) # amarco edited
 link_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/lib) # amarco edited
@@ -68,11 +68,11 @@ add_dependencies(stand_up_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 # target_link_libraries(torque_lcm ${EXTRA_LIBS} ${catkin_LIBRARIES})
 # add_dependencies(torque_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-# add_executable(walk_lcm nodes/examples_unitree/walk_mode.cpp)
-# target_link_libraries(walk_lcm ${EXTRA_LIBS} ${catkin_LIBRARIES})
-# add_dependencies(walk_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(walk_lcm nodes/examples_unitree/walk_mode.cpp)
+target_link_libraries(walk_lcm ${EXTRA_LIBS} ${catkin_LIBRARIES})
+add_dependencies(walk_lcm ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(walk_lcm_mod nodes/examples_unitree/walk_mode_mode.cpp)
+add_executable(walk_lcm_mod nodes/examples_unitree/walk_mode_mod.cpp)
 target_link_libraries(walk_lcm_mod ${EXTRA_LIBS} ${catkin_LIBRARIES})
 add_dependencies(walk_lcm_mod ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 

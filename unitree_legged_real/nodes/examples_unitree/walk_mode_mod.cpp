@@ -65,18 +65,20 @@ int mainHelper(int argc, char *argv[], TLCM &roslcm)
         SendHighROS.yawSpeed = 0.0f;
         SendHighROS.reserve = 0;
 
-        if(motiontime > 0 && motiontime < 2000){
+        if(motiontime > 0 && motiontime < 1000){
             SendHighROS.mode = 0;
+            printf("waiting 2 sec ...\n");
         }
         if(motiontime > 2000 && motiontime < 4000){
             SendHighROS.mode = 2; // 2. target velocity walking (controlled by velocity + yawSpeed)
             SendHighROS.gaitType = 1; // 0.idle  1.trot  2.trot running  3.climb stair
             SendHighROS.velocity[0] = 0.2f; // -1  ~ +1
             SendHighROS.bodyHeight = 0.1; // (unit: m, default: 0.28m),
-            printf("walking ...\n");
+            printf("walking for 4 sec ...\n");
         }
         if(motiontime > 4000 ){
             SendHighROS.mode = 1;
+            printf("waiting indefinitely ...\n");
         }
 
         SendHighLCM = ToLcm(SendHighROS, SendHighLCM);
