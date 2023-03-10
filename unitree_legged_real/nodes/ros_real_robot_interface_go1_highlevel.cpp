@@ -24,7 +24,7 @@ class ROSRealRobotInterfaceGo1HighLevel : public RealRobotInterfaceGo1HighLevel 
 
 public:
 
-    ROSRealRobotInterfaceGo1HighLevel() : RealRobotInterfaceGo1HighLevel(){
+    ROSRealRobotInterfaceGo1HighLevel(uint16_t localPort, const char* targetIP, uint16_t targetPort) : RealRobotInterfaceGo1HighLevel(localPort,targetIP,targetPort){
 
       std::cout << "Initializing high level communication with the robot ...\n";
 
@@ -94,6 +94,13 @@ int main(int argc, char *argv[])
     data_parser.get("topic_publish_robot_state",topic_publish_robot_state);
     int loop_frequency;
     data_parser.get("loop_frequency",loop_frequency);
+    int localPort;
+    int targetPort;
+    std::string targetIP;
+    data_parser.get("localPort",localPort);
+    data_parser.get("targetPort",targetPort);
+    data_parser.get("targetIP",targetIP);
+
 
     // Set loop frequency:
     ros::Rate loop_rate(loop_frequency); // amarco: Frequency in Hz
@@ -109,11 +116,8 @@ int main(int argc, char *argv[])
     // std::cout << "Subscribing to low-level commands from the network and sending them to the robot via LCM ...\n";
 
     // ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel;
-    // uint16_t localPort = 8090;
-    // std::string targetIP("192.168.123.161");
-    // uint16_t targetPort = 8082;
-    // ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel = ROSRealRobotInterfaceGo1HighLevel(localPort,targetIP.c_str(),targetPort);
-    ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel;
+    ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel = ROSRealRobotInterfaceGo1HighLevel(localPort,targetIP.c_str(),targetPort);
+    // ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel;
     ros_robot_interface_go1_highlevel.set_deltaT(1./(double)loop_frequency); // seconds
 
     // Initialize global variables:
