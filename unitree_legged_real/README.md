@@ -16,3 +16,7 @@ for ii in range(12):
     print(msg_low_cmd.motorCmd[ii].q)
 ```
 
+### Dependencies for the ROS Python files in this repo
+sudo apt-get install ros-${ROS_DISTRO}-tf
+
+plotjuggler

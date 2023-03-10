@@ -5,6 +5,8 @@ import pdb
 import unitree_legged_msgs.msg # Located at /home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/devel/lib/python3/dist-packages (this path is added automatically to the PYTHONPATH after doing 'source devel/setup.bash')
 import rospy
 
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
+
 class RobotDataCollection():
 
     def __init__(self,topic_high_state,topic_vicon_data):
@@ -27,6 +29,19 @@ class RobotDataCollection():
         self.msg_high_state = msg
 
     def callback_vicon_data(self,msg):
+
+        """
+
+        vicon_bridge quaternion convention: (x,y,z,w)
+
+        """
+
+        pdb.set_trace()
+
+        msg
+        euler_from_quaternion()
+
+
         pass
 
     def differentiate_vicon_position(self):
