@@ -25,14 +25,14 @@ markersize_trajs = 0.4
 fontsize_labels = 25
 matplotlib.rc('xtick', labelsize=fontsize_labels)
 matplotlib.rc('ytick', labelsize=fontsize_labels)
-matplotlib.rc('text', usetex=True)
-matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
+matplotlib.rc('text', usetex=False)
+# matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
 plt.rc('legend',fontsize=fontsize_labels+2)
 
 
 HIGHLEVEL = 0x00
 
-def get_training_data_from_waypoints(deltaT,which_trajectory,save_data_trajs_dict=None):
+def get_training_data_from_waypoints(deltaT,which_trajectory,save_data_trajs_dict=None,block_plot=True,plotting=True):
     """
     
     :return:
@@ -112,42 +112,42 @@ def get_training_data_from_waypoints(deltaT,which_trajectory,save_data_trajs_dic
     # Xtrain = tf.convert_to_tensor(value=Xtrain_np,dtype=np.float32)
     # Ytrain = tf.convert_to_tensor(value=Ytrain_np,dtype=np.float32)
 
+    if plotting:
+
+        # Velocity profiles:
+        hdl_fig_data, hdl_splots_data = plt.subplots(4,1,figsize=(12,8),sharex=True)
+        time_vec = np.arange(0,Nsteps-1)*deltaT
+        for ii in ind_smooth:
+            hdl_splots_data[0].plot(time_vec,vel_profile_batch[ii,:,0],lw=1,alpha=0.3,color="navy")
+            hdl_splots_data[1].plot(time_vec,vel_profile_batch[ii,:,1],lw=1,alpha=0.3,color="navy")
+            hdl_splots_data[2].plot(time_vec,vel_mod_profile_batch[ii,:],lw=1,alpha=0.3,color="navy")
+            hdl_splots_data[3].plot(time_vec[0:-1],th_vel_profile_batch[ii,:,0],lw=1,alpha=0.3,color="navy")
+
+        # Select first trajectory:
+        hdl_splots_data[2].plot(time_vec[0:-1],vel_tot[which_trajectory,:,0],alpha=0.9,color="navy",lw=3.0)
+        hdl_splots_data[3].plot(time_vec[0:-1],vel_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
+
+        hdl_splots_data[0].set_ylabel(r"$v_x$ [m/s]",fontsize=fontsize_labels)
+        hdl_splots_data[1].set_ylabel(r"$v_y$ [m/s]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
+        hdl_splots_data[3].set_ylabel(r"$\dot{\theta}$ [rad/s]",fontsize=fontsize_labels)
+        hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
+        hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
+        hdl_splots_data[-1].set_xticks([time_vec[0],time_vec[-1]])
 
 
-    # Velocity profiles:
-    hdl_fig_data, hdl_splots_data = plt.subplots(4,1,figsize=(12,8),sharex=True)
-    time_vec = np.arange(0,Nsteps-1)*deltaT
-    for ii in ind_smooth:
-        hdl_splots_data[0].plot(time_vec,vel_profile_batch[ii,:,0],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[1].plot(time_vec,vel_profile_batch[ii,:,1],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[2].plot(time_vec,vel_mod_profile_batch[ii,:],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[3].plot(time_vec[0:-1],th_vel_profile_batch[ii,:,0],lw=1,alpha=0.3,color="navy")
+        # Trajectories:
+        
+        hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(12,8),sharex=False)
+        for ii in ind_smooth:
+            hdl_splots_data.plot(pos_profile_batch[ii,:,0],pos_profile_batch[ii,:,1],alpha=0.3,color="navy")
+            hdl_splots_data.plot(pos_profile_batch[ii,-1,0],pos_profile_batch[ii,-1,1],marker="x",color="black",markersize=5)
+            hdl_splots_data.plot(pos_profile_batch[ii,0,0],pos_profile_batch[ii,0,1],marker=".",color="green",markersize=3)
 
-    # Select first trajectory:
-    hdl_splots_data[2].plot(time_vec[0:-1],vel_tot[which_trajectory,:,0],alpha=0.9,color="navy",lw=3.0)
-    hdl_splots_data[3].plot(time_vec[0:-1],vel_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
-
-    hdl_splots_data[0].set_ylabel(r"$v_x$ [m/s]",fontsize=fontsize_labels)
-    hdl_splots_data[1].set_ylabel(r"$v_y$ [m/s]",fontsize=fontsize_labels)
-    hdl_splots_data[2].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
-    hdl_splots_data[3].set_ylabel(r"$\dot{\theta}$ [rad/s]",fontsize=fontsize_labels)
-    hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
-    hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
-    hdl_splots_data[-1].set_xticks([time_vec[0],time_vec[-1]])
-
-
-    # Trajectories:
-    
-    hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(12,8),sharex=False)
-    for ii in ind_smooth:
-        hdl_splots_data.plot(pos_profile_batch[ii,:,0],pos_profile_batch[ii,:,1],alpha=0.3,color="navy")
-        hdl_splots_data.plot(pos_profile_batch[ii,-1,0],pos_profile_batch[ii,-1,1],marker="x",color="black",markersize=5)
-        hdl_splots_data.plot(pos_profile_batch[ii,0,0],pos_profile_batch[ii,0,1],marker=".",color="green",markersize=3)
-
-    # Select first trajectory:
-    hdl_splots_data.plot(state_tot[which_trajectory,:,0],state_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
-    hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
-    hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
+        # Select first trajectory:
+        hdl_splots_data.plot(state_tot[which_trajectory,:,0],state_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
+        hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
+        hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
 
 
 
@@ -158,8 +158,8 @@ def get_training_data_from_waypoints(deltaT,which_trajectory,save_data_trajs_dic
             file = open(save_data_trajs_dict["path2data"], 'wb')
             pickle.dump(data2save,file)
             file.close()
-    else:
-        plt.show(block=True)
+    elif plotting:
+        plt.show(block=block_plot)
 
     return state_tot, vel_tot, Nsteps, Ntrajs
 
@@ -213,17 +213,23 @@ def main():
 
     """
 
+    np.random.seed(1)
+
     rate_freq_send_commands = 10 # Hz
     # save_data_trajs_dict = dict(save=True,path2data="/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated/trajs.pickle")
     save_data_trajs_dict = None
     which_trajectory = 0
-    state_tot, vel_tot, Nsteps_control, Ntrajs = get_training_data_from_waypoints(deltaT=1./rate_freq_send_commands,which_trajectory=which_trajectory,save_data_trajs_dict=save_data_trajs_dict)
+    deltaT = 1./rate_freq_send_commands
+    state_tot, vel_tot, Nsteps_control, Ntrajs = get_training_data_from_waypoints(deltaT=deltaT,which_trajectory=which_trajectory,
+                                                                                    save_data_trajs_dict=save_data_trajs_dict,block_plot=False,plotting=False)
     # vel_tot: [Ntrajs,Nsteps_tot,2]
 
     rospy.init_node("walk_with_vel_profile", anonymous=False)
     rate_freq_read_state = 500 # Hz
     rate_read_state = rospy.Rate(rate_freq_read_state) # Hz
     Nsteps_read_states = int(Nsteps_control * rate_freq_read_state/rate_freq_send_commands)
+    print("Nsteps_read_states: ",Nsteps_read_states)
+    print("total execution time: {0:f} sec".format(Nsteps_read_states/rate_freq_read_state))
 
     topic_high_cmd = "high_state_from_robot"
     robot_state_collection = RobotStatesCollection(topic_high_cmd) # This starts subscribers to the current robot state
@@ -250,25 +256,52 @@ def main():
     msg_high_cmd.levelFlag = HIGHLEVEL
     msg_high_cmd.mode = 2
     msg_high_cmd.gaitType = 1 # 0.idle  1.trot  2.trot running  3.climb stair
-    msg_high_cmd.velocity[0] = 0.1 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
-    msg_high_cmd.bodyHeight = 0.1 # # (unit: m, default: 0.28m)
+    msg_high_cmd.velocity[0] = 0.05 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
+    msg_high_cmd.bodyHeight = 0.0 # # (unit: m, default: 0.28m) -> this is measured w.r.t the current height....
+    msg_high_cmd.yawSpeed = 0.0
+
+
+    # Before we send the velocities, saturate them:
+    fac_decrease = 0.6
+    vel_tot[which_trajectory,:,0] = vel_tot[which_trajectory,:,0] / np.amax(vel_tot[which_trajectory,:,0]) * fac_decrease
+    vel_tot[which_trajectory,:,1] = np.sign(vel_tot[which_trajectory,:,1])*abs(vel_tot[which_trajectory,:,1]) / np.amax(abs(vel_tot[which_trajectory,:,1]))*1.2
+
+
+    # Velocity profiles:
+    hdl_fig_data, hdl_splots_data = plt.subplots(2,1,figsize=(12,8),sharex=True)
+    time_vec = np.arange(0,Nsteps_control)*deltaT
+    hdl_splots_data[0].plot(time_vec,vel_tot[which_trajectory,0:-1,0],lw=1,alpha=0.3,color="navy")
+    hdl_splots_data[1].plot(time_vec,vel_tot[which_trajectory,0:-1,1],lw=1,alpha=0.3,color="navy")
+    hdl_splots_data[0].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
+    hdl_splots_data[1].set_ylabel(r"$\dot{\theta}$ [rad/s]",fontsize=fontsize_labels)
+    hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
+    hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
+    hdl_splots_data[-1].set_xticks([time_vec[0],time_vec[-1]])
+
+    plt.show(block=False)
+    plt.pause(1)
 
 
     ii = 0; cc = 0
     data_joints = np.zeros((len(data_joint_fields),Nsteps_read_states,len(data_joint_names)))
     data_endeff = np.zeros((len(data_endeffector_fields),Nsteps_read_states))
     time_start = time.time()
-    save_data_from_experiment = False
+    save_data_from_experiment = True
     print("Starting loop!")
     print("Publishing high-level command, filled with desired trajectories at topic {0:s} ...".format(topic_high_cmd))
-    while ii < Nsteps_read_states:
+    # send_command = False
+    send_command = True
+    # Nsteps_read_states_applied = 1000
+    Nsteps_read_states_applied = Nsteps_read_states
+    while ii < Nsteps_read_states_applied:
 
         time_curr = time.time() - time_start
 
         # Change the commands we send every rate_freq_read_state//rate_freq_send_commands steps:
         if ii % (rate_freq_read_state//rate_freq_send_commands) == 0:
-            msg_high_cmd.velocity[0] = vel_tot[which_trajectory,cc,0] # desired linear velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
-            msg_high_cmd.velocity[1] = vel_tot[which_trajectory,cc,1] # desired angular velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
+            if send_command:
+                msg_high_cmd.velocity[0] = vel_tot[which_trajectory,cc,0] # desired linear velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
+                msg_high_cmd.yawSpeed = vel_tot[which_trajectory,cc,1] # desired angular velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
             cc += 1
             print("Sending command to robot at frequency {0:d} Hz | tt = {1:d} / {2:d}".format(rate_freq_send_commands,cc,Nsteps_control))
         
@@ -310,11 +343,25 @@ def main():
 
         ii += 1
 
+    # Reset to mode 0:
+    print("Back to standing still....")
+    msg_high_cmd.mode = 1
+    msg_high_cmd.gaitType = 0 # 0.idle  1.trot  2.trot running  3.climb stair
+    msg_high_cmd.velocity[0] = 0.0 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
+    msg_high_cmd.bodyHeight = 0.0 # # (unit: m, default: 0.28m)
+    ii = 0
+    while ii < 500:
+        pub2high_cmd.publish(msg_high_cmd)
+        rate_read_state.sleep()
+        ii += 1
+
 
     # Save data:
     if save_data_from_experiment:
-        data2save = dict(data_joint_fields=data_joint_fields,data_joint_names=data_joint_names,data_endeffector_fields=data_endeffector_fields,data_joints=data_joints,data_endeff=data_endeff)
-        path2save = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated"
+        data2save = dict(data_joint_fields=data_joint_fields,data_joint_names=data_joint_names,data_endeffector_fields=data_endeffector_fields,\
+            data_joints=data_joints,data_endeff=data_endeff,deltaT=deltaT)
+        # path2save = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated"
+        path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/trajs_generated"
         name_file_data = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         name_file = "{0:s}_trajs_go1_walking.pickle".format(name_file_data)
         path2save_full = "{0:s}/{1:s}".format(path2save,name_file)
@@ -327,8 +374,44 @@ def main():
         plt.show(block=True)
 
 
+
+def plot_saved_trajs():
+
+    # path2load = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/trajs_generated/2023_03_09_21_33_19_trajs_go1_walking.pickle"
+    # path2load = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/trajs_generated/2023_03_09_21_50_07_trajs_go1_walking.pickle"
+    # path2load = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/trajs_generated/2023_03_09_21_56_06_trajs_go1_walking.pickle"
+    path2load = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/trajs_generated/2023_03_09_21_59_56_trajs_go1_walking.pickle"
+    
+
+
+    file = open(path2load, "rb")
+    data_dict = pickle.load(file)
+    file.close()
+
+    data_endeff = data_dict["data_endeff"]
+
+    # Velocity profiles:
+    hdl_fig_data, hdl_splots_data = plt.subplots(2,1,figsize=(12,8),sharex=True)
+    hdl_splots_data[0].set_title("Linear forward velocity",fontsize=fontsize_labels)
+    hdl_splots_data[0].plot(data_endeff[0,:],data_endeff[4,:],lw=1,alpha=0.3,color="navy",label="Desired")
+    hdl_splots_data[0].plot(data_endeff[0,:],data_endeff[1,:],lw=1,alpha=0.8,color="navy",label="Current")
+
+    hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
+    hdl_splots_data[1].plot(data_endeff[0,:],data_endeff[6,:],lw=1,alpha=0.3,color="navy",label="Desired")
+    hdl_splots_data[1].plot(data_endeff[0,:],data_endeff[3,:],lw=1,alpha=0.8,color="navy",label="Current")
+    hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
+    hdl_splots_data[-1].set_xlim([data_endeff[0,0],data_endeff[0,-1]])
+    hdl_splots_data[-1].set_xticks([data_endeff[0,0],data_endeff[0,-1]])
+
+    plt.show(block=True)
+
+
+
+
 if __name__ == "__main__":
 
-    main()
+    # main()
+
+    plot_saved_trajs()
 
 

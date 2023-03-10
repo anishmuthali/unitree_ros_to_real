@@ -48,8 +48,21 @@ void ROSRealRobotInterfaceGo1HighLevel::highCmdCallback(const unitree_legged_msg
   float vel_linear_sideways = msg->velocity[1];
   float vel_angular = msg->yawSpeed;
   float bodyHeight = msg->bodyHeight;
+  uint8_t mode = msg->mode;
+  uint8_t gaitType = msg->gaitType;
+
+  // std::cout << "\n";
+  // std::cout << "vel_linear_forward: " << vel_linear_forward << "\n";
+  // std::cout << "vel_linear_sideways: " << vel_linear_sideways << "\n";
+  // std::cout << "vel_angular: " << vel_angular << "\n";
+  // std::cout << "bodyHeight: " << bodyHeight << "\n";
+  // std::cout << "mode: " << unsigned(mode) << "\n";
+  // std::cout << "gaitType: " << unsigned(gaitType) << "\n";
+
   this->send_linear_and_angular_velocity_commands(vel_linear_forward,vel_linear_sideways,vel_angular);
   this->send_desired_body_height(bodyHeight);
+  this->update_mode_behavior(mode); // This should be called only once
+  this->update_gait_type(gaitType); // This should be called only once
 
   return;
 }
@@ -95,6 +108,11 @@ int main(int argc, char *argv[])
     // std::cout << "Receiving LCM low-level state data from the robot and publishing it ...\n";
     // std::cout << "Subscribing to low-level commands from the network and sending them to the robot via LCM ...\n";
 
+    // ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel;
+    // uint16_t localPort = 8090;
+    // std::string targetIP("192.168.123.161");
+    // uint16_t targetPort = 8082;
+    // ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel = ROSRealRobotInterfaceGo1HighLevel(localPort,targetIP.c_str(),targetPort);
     ROSRealRobotInterfaceGo1HighLevel ros_robot_interface_go1_highlevel;
     ros_robot_interface_go1_highlevel.set_deltaT(1./(double)loop_frequency); // seconds
 
