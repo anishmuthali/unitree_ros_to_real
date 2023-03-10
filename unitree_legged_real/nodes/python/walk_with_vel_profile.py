@@ -4,28 +4,41 @@ import time
 import pdb
 
 import unitree_legged_msgs.msg # Located at /home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/devel/lib/python3/dist-packages (this path is added automatically to the PYTHONPATH after doing 'source devel/setup.bash')
-from unitree_legged_sdk_python_tools.utils.visualization_raisim  import VisualizeRaisim
+# from unitree_legged_sdk_python_tools.utils.visualization_raisim  import VisualizeRaisim
 import rospy
 
 # Data logging:
 import time
-
 from datetime import datetime
 
+import pickle
+import math
 from min_jerk_gen import min_jerk
 
-import pickle
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from matplotlib import cm
+import matplotlib
 
-def get_training_data_from_waypoints(save_data_dict=None):
+markersize_x0 = 10
+markersize_trajs = 0.4
+fontsize_labels = 25
+matplotlib.rc('xtick', labelsize=fontsize_labels)
+matplotlib.rc('ytick', labelsize=fontsize_labels)
+matplotlib.rc('text', usetex=True)
+matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
+plt.rc('legend',fontsize=fontsize_labels+2)
+
+
+HIGHLEVEL = 0x00
+
+def get_training_data_from_waypoints(deltaT,which_trajectory,save_data_trajs_dict=None):
     """
     
     :return:
     Xtrain: [(Nsteps-3)*Ntrajs, dim_x+dim_u]
     Ytrain: [(Nsteps-3)*Ntrajs, dim_x]
     """
-
-    # Send data every deltaT:
-    deltaT = 0.1 # sec
 
     # Trajectory duration:
     time_tot = 5.0 # sec
@@ -58,7 +71,7 @@ def get_training_data_from_waypoints(save_data_dict=None):
 
     pos_profile_batch = np.zeros((Ntrajs,Nsteps,2))
     for ii in range(Ntrajs):
-        if ii % 10 == 0: logger.info(" Generating trajectory {0:d} / {1:d} ...".format(ii+1,Ntrajs))
+        if ii % 10 == 0: print(" Generating trajectory {0:d} / {1:d} ...".format(ii+1,Ntrajs))
         pos_profile_batch[ii,...],_ = min_jerk(pos=pos_waypoints[ii,...], dur=Nsteps, vel=None, acc=None, psg=None) # [Nsteps, D]
 
 
@@ -77,7 +90,8 @@ def get_training_data_from_waypoints(save_data_dict=None):
     th_is_within_range = np.all(abs(th_profile_batch[...,0]) <= 0.98*math.pi/2.,axis=1)
     ind_smooth = np.arange(0,Ntrajs)[vx_is_positive & th_is_within_range]
 
-    logger.info("Smooth trajectories: {0:d} / {1:d}".format(len(ind_smooth),Ntrajs))
+    print("Smooth trajectories: {0:d} / {1:d}".format(len(ind_smooth),Ntrajs))
+    assert len(ind_smooth) > 0
 
     Nsteps_tot = th_vel_profile_batch.shape[1]
     state_tot = np.concatenate((pos_profile_batch[ind_smooth,0:Nsteps_tot,:],th_profile_batch[ind_smooth,0:Nsteps_tot,:]),axis=2) # [Ntrajs,Nsteps_tot,3], with Nsteps_tot=Nsteps-2 due to the integration issues
@@ -98,6 +112,8 @@ def get_training_data_from_waypoints(save_data_dict=None):
     # Xtrain = tf.convert_to_tensor(value=Xtrain_np,dtype=np.float32)
     # Ytrain = tf.convert_to_tensor(value=Ytrain_np,dtype=np.float32)
 
+
+
     # Velocity profiles:
     hdl_fig_data, hdl_splots_data = plt.subplots(4,1,figsize=(12,8),sharex=True)
     time_vec = np.arange(0,Nsteps-1)*deltaT
@@ -106,6 +122,11 @@ def get_training_data_from_waypoints(save_data_dict=None):
         hdl_splots_data[1].plot(time_vec,vel_profile_batch[ii,:,1],lw=1,alpha=0.3,color="navy")
         hdl_splots_data[2].plot(time_vec,vel_mod_profile_batch[ii,:],lw=1,alpha=0.3,color="navy")
         hdl_splots_data[3].plot(time_vec[0:-1],th_vel_profile_batch[ii,:,0],lw=1,alpha=0.3,color="navy")
+
+    # Select first trajectory:
+    hdl_splots_data[2].plot(time_vec[0:-1],vel_tot[which_trajectory,:,0],alpha=0.9,color="navy",lw=3.0)
+    hdl_splots_data[3].plot(time_vec[0:-1],vel_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
+
     hdl_splots_data[0].set_ylabel(r"$v_x$ [m/s]",fontsize=fontsize_labels)
     hdl_splots_data[1].set_ylabel(r"$v_y$ [m/s]",fontsize=fontsize_labels)
     hdl_splots_data[2].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
@@ -116,33 +137,38 @@ def get_training_data_from_waypoints(save_data_dict=None):
 
 
     # Trajectories:
+    
     hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(12,8),sharex=False)
     for ii in ind_smooth:
         hdl_splots_data.plot(pos_profile_batch[ii,:,0],pos_profile_batch[ii,:,1],alpha=0.3,color="navy")
         hdl_splots_data.plot(pos_profile_batch[ii,-1,0],pos_profile_batch[ii,-1,1],marker="x",color="black",markersize=5)
         hdl_splots_data.plot(pos_profile_batch[ii,0,0],pos_profile_batch[ii,0,1],marker=".",color="green",markersize=3)
+
+    # Select first trajectory:
+    hdl_splots_data.plot(state_tot[which_trajectory,:,0],state_tot[which_trajectory,:,1],alpha=0.9,color="navy",lw=3.0)
     hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
     hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
 
 
+
     Nsteps = state_tot.shape[1]-1
-    if save_data_dict is not None:
-        if save_data_dict["save"]:
+    if save_data_trajs_dict is not None:
+        if save_data_trajs_dict["save"]:
             data2save = dict(state_tot=state_tot,vel_tot=vel_tot,Nsteps=Nsteps,Ntrajs=Ntrajs,deltaT=deltaT)
-            file = open(save_data_dict["path2data"], 'wb')
+            file = open(save_data_trajs_dict["path2data"], 'wb')
             pickle.dump(data2save,file)
             file.close()
     else:
         plt.show(block=True)
 
-    return state_tot, vel_tot, Nsteps, Ntrajs, deltaT
+    return state_tot, vel_tot, Nsteps, Ntrajs
 
 
 
 
 class RobotStatesCollection():
 
-    def __init__(self):
+    def __init__(self,topic_high_state):
 
         self.Njoints = 12
 
@@ -152,7 +178,6 @@ class RobotStatesCollection():
         self.com_vel = np.zeros(3) # (unit: m/s), forwardSpeed, sideSpeed, rotateSpeed in body frame
         
         # Keep track of the low-level and high-level state:
-        self.msg_low_state = unitree_legged_msgs.msg.LowState()
         self.msg_high_state = unitree_legged_msgs.msg.HighState()
 
         """
@@ -164,19 +189,8 @@ class RobotStatesCollection():
         """
 
         # The callback will be called for each message published on the topic; we can't set the frequency
-        self.topic_low_state = "low_state_from_robot"
-        rospy.Subscriber(self.topic_low_state, unitree_legged_msgs.msg.LowState, self.callback_robot_low_state)
-
-        # The callback will be called for each message published on the topic; we can't set the frequency
-        self.topic_high_state = "high_state_from_robot"
+        self.topic_high_state = topic_high_state
         rospy.Subscriber(self.topic_high_state, unitree_legged_msgs.msg.HighState, self.callback_robot_high_state)
-
-
-    def callback_robot_low_state(self,msg):
-
-        self.msg_low_state = msg
-        for ii in range(self.Njoints):
-            self.joint_pos_curr[ii] = msg.motorState[ii].q
 
     def callback_robot_high_state(self,msg):
 
@@ -185,7 +199,10 @@ class RobotStatesCollection():
             self.com_pos_odometry[ii] = msg.position[ii]
             self.com_vel[ii] = msg.velocity[ii]
 
-def main(joint_pos_des_target):
+        for ii in range(self.Njoints):
+            self.joint_pos_curr[ii] = msg.motorState[ii].q
+
+def main():
     """
     
     Use high-level Unitree commands to move the robot around the room using velocity profiles
@@ -197,20 +214,22 @@ def main(joint_pos_des_target):
     """
 
     rate_freq_send_commands = 10 # Hz
-    save_data_dict = dict(save=True,path2data="/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated/trajs.pickle")
-    save_data_dict = None
-    state_tot, vel_tot, Nsteps_control, Ntrajs, deltaT = get_training_data_from_waypoints(save_data_dict,deltaT=1./rate_freq_send_commands)
+    # save_data_trajs_dict = dict(save=True,path2data="/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated/trajs.pickle")
+    save_data_trajs_dict = None
+    which_trajectory = 0
+    state_tot, vel_tot, Nsteps_control, Ntrajs = get_training_data_from_waypoints(deltaT=1./rate_freq_send_commands,which_trajectory=which_trajectory,save_data_trajs_dict=save_data_trajs_dict)
     # vel_tot: [Ntrajs,Nsteps_tot,2]
-    which_traj = 0
 
     rospy.init_node("walk_with_vel_profile", anonymous=False)
     rate_freq_read_state = 500 # Hz
     rate_read_state = rospy.Rate(rate_freq_read_state) # Hz
     Nsteps_read_states = int(Nsteps_control * rate_freq_read_state/rate_freq_send_commands)
 
-    robot_state_collection = RobotStatesCollection() # This starts subscribers to the current robot state
+    topic_high_cmd = "high_state_from_robot"
+    robot_state_collection = RobotStatesCollection(topic_high_cmd) # This starts subscribers to the current robot state
 
-    pub2high_cmd = rospy.Publisher("high_cmd_to_robot", unitree_legged_msgs.msg.HighCmd, queue_size=10)
+    topic_high_cmd = "high_cmd_to_robot"
+    pub2high_cmd = rospy.Publisher(topic_high_cmd, unitree_legged_msgs.msg.HighCmd, queue_size=10)
 
     print("Reading robot states at ~{0:d} Hz".format(rate_freq_read_state))
     print("Sending velocity profile at ~{0:d} Hz".format(rate_freq_send_commands))
@@ -221,36 +240,42 @@ def main(joint_pos_des_target):
     # while(not rospy.is_shutdown() and ii < Nsteps_control):
 
     # Log data out:
-    data_joint_fields = ["q_curr","dq_curr","ddq_curr","u_est","q_des","dq_des","u_des"];
+    data_joint_fields = ["q_curr","dq_curr","ddq_curr","u_est"];
     data_joint_names = ["time_stamp","FR_0","FR_1","FR_2","FL_0","FL_1","FL_2","RR_0","RR_1","RR_2","RL_0","RL_1","RL_2"];
 
-    data_endeffector_fields = ["time_stamp","vel_lin_forw_curr","vel_lin_side_curr","vel_ang_curr","vel_lin_des","vel_ang_des","pos_odom_x","pos_odom_y","pos_odom_z"]
+    data_endeffector_fields = ["time_stamp","vel_lin_forw_curr","vel_lin_side_curr","vel_ang_curr","vel_lin_forw_des","vel_lin_side_des","vel_ang_des","pos_odom_x","pos_odom_y","pos_odom_z"]
 
     # Message containing walking mode:
     msg_high_cmd = unitree_legged_msgs.msg.HighCmd()
-    msg_high_cmd.levelFlag = 0xFF; raise ValueError("Not sure about this")
+    msg_high_cmd.levelFlag = HIGHLEVEL
     msg_high_cmd.mode = 2
     msg_high_cmd.gaitType = 1 # 0.idle  1.trot  2.trot running  3.climb stair
     msg_high_cmd.velocity[0] = 0.1 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
-    msg_high_cmd.bodyHeight = 1 # # (unit: m, default: 0.28m)
+    msg_high_cmd.bodyHeight = 0.1 # # (unit: m, default: 0.28m)
 
 
-    ii = 0
+    ii = 0; cc = 0
     data_joints = np.zeros((len(data_joint_fields),Nsteps_read_states,len(data_joint_names)))
     data_endeff = np.zeros((len(data_endeffector_fields),Nsteps_read_states))
     time_start = time.time()
+    save_data_from_experiment = False
+    print("Starting loop!")
+    print("Publishing high-level command, filled with desired trajectories at topic {0:s} ...".format(topic_high_cmd))
     while ii < Nsteps_read_states:
 
         time_curr = time.time() - time_start
 
         # Change the commands we send every rate_freq_read_state//rate_freq_send_commands steps:
         if ii % (rate_freq_read_state//rate_freq_send_commands) == 0:
-            msg_high_cmd.velocity[0] = vel_tot[which_traj,ii,0] # desired linear velocity
-            msg_high_cmd.velocity[1] = vel_tot[which_traj,ii,1] # desired angular velocity
+            msg_high_cmd.velocity[0] = vel_tot[which_trajectory,cc,0] # desired linear velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
+            msg_high_cmd.velocity[1] = vel_tot[which_trajectory,cc,1] # desired angular velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
+            cc += 1
+            print("Sending command to robot at frequency {0:d} Hz | tt = {1:d} / {2:d}".format(rate_freq_send_commands,cc,Nsteps_control))
         
         # Send commands all the time (they're changed above at a lower rate):
         pub2high_cmd.publish(msg_high_cmd)
             
+
         """
         Logging data
         """
@@ -258,14 +283,10 @@ def main(joint_pos_des_target):
 
         for jj in range(1,len(data_joint_names)):
 
-            data_joints[0,ii,jj] = robot_state_collection.msg_low_state.motorState[jj].q
-            data_joints[1,ii,jj] = robot_state_collection.msg_low_state.motorState[jj].dq
-            data_joints[2,ii,jj] = robot_state_collection.msg_low_state.motorState[jj].ddq
-            data_joints[3,ii,jj] = robot_state_collection.msg_low_state.motorState[jj].tauEst
-
-            data_joints[4,ii,jj] = msg_high_cmd.motorCmd[jj].q
-            data_joints[5,ii,jj] = msg_high_cmd.motorCmd[jj].dq
-            data_joints[6,ii,jj] = msg_high_cmd.motorCmd[jj].tau
+            data_joints[0,ii,jj] = robot_state_collection.msg_high_state.motorState[jj].q
+            data_joints[1,ii,jj] = robot_state_collection.msg_high_state.motorState[jj].dq
+            data_joints[2,ii,jj] = robot_state_collection.msg_high_state.motorState[jj].ddq
+            data_joints[3,ii,jj] = robot_state_collection.msg_high_state.motorState[jj].tauEst
 
         # data_endeffector_fields = ["time_stamp","vel_lin_curr","vel_ang_curr","vel_lin_des","vel_ang_des","pos_odom_x","pos_odom_y","pos_odom_z"]
         data_endeff[0,ii] = time_curr
@@ -278,11 +299,12 @@ def main(joint_pos_des_target):
         # Desired velocity:
         data_endeff[4,ii] = msg_high_cmd.velocity[0]
         data_endeff[5,ii] = msg_high_cmd.velocity[1]
+        data_endeff[6,ii] = msg_high_cmd.yawSpeed
 
         # Estimated position:
-        data_endeff[6,ii] = robot_state_collection.msg_high_state.position[0]
-        data_endeff[7,ii] = robot_state_collection.msg_high_state.position[1]
-        data_endeff[8,ii] = robot_state_collection.msg_high_state.position[2]
+        data_endeff[7,ii] = robot_state_collection.msg_high_state.position[0]
+        data_endeff[8,ii] = robot_state_collection.msg_high_state.position[1]
+        data_endeff[9,ii] = robot_state_collection.msg_high_state.position[2]
 
         rate_read_state.sleep()
 
@@ -290,7 +312,7 @@ def main(joint_pos_des_target):
 
 
     # Save data:
-    if save_data:
+    if save_data_from_experiment:
         data2save = dict(data_joint_fields=data_joint_fields,data_joint_names=data_joint_names,data_endeffector_fields=data_endeffector_fields,data_joints=data_joints,data_endeff=data_endeff)
         path2save = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated"
         name_file_data = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -307,13 +329,6 @@ def main(joint_pos_des_target):
 
 if __name__ == "__main__":
 
-
-    # Target position we want to reach: Stand-up position
-    # joint_pos_des_target = np.array([0.0136, 0.7304, -1.4505, -0.0118, 0.7317, -1.4437, 0.0105, 0.6590, -1.3903, -0.0102, 0.6563, -1.3944])
-
-    # Target position we want to reach: Lying-down position
-    # joint_pos_des_target = np.array([-0.303926,1.15218,-2.69135,0.346799,1.17985,-2.73951,-0.348858,1.15957,-2.75885,0.348737,1.20456,-2.79926])
-
-    main(joint_pos_des_target)
+    main()
 
 

@@ -11,7 +11,7 @@
 #include <boost/thread/mutex.hpp>
 #include <unitree_legged_msgs/LowCmd.h>
 #include <unitree_legged_msgs/LowState.h>
-#include <position_holder_go1.hpp>
+#include <position_holder_control_loop.hpp>
 
 #include <data_parser.hpp>
 

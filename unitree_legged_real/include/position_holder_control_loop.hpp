@@ -2,8 +2,8 @@
 /* ------------------------------------------ Position Holder ---------------------------------------------------- */
 /* --------------------------------------------------------------------------------------------------------------- */
 
-#ifndef _POSITION_HOLDER_H_
-#define _POSITION_HOLDER_H_
+#ifndef _POSITION_HOLDER_CONTROL_LOOP_H_
+#define _POSITION_HOLDER_CONTROL_LOOP_H_
 
 // #include <string>
 // #include <pthread.h>
@@ -13,10 +13,10 @@
 // #include "convert.h"
 #include <ros/ros.h>
 #include <unitree_legged_msgs/LowCmd.h>
-#include <python_interface_go1/interface_real_robot.hpp>
+#include <python_interface_go1/real_robot_interface_go1.hpp>
 
 
-class PositionHolderControlLoop : public RobotInterfaceGo1 {
+class PositionHolderControlLoop : public RealRobotInterfaceGo1 {
 
 public:
 
@@ -24,7 +24,7 @@ public:
                                 const Eigen::Ref<Vector12d>& D_gains,
                                 int Nsteps_timeout = 20, 
                                 int time_sleep_ms = 500,
-                                bool verbosity = false) :   RobotInterfaceGo1(){
+                                bool verbosity = false) :   RealRobotInterfaceGo1(){
 
         this->set_PD_gains(P_gains,D_gains);
         
@@ -57,4 +57,4 @@ private:
 };
 
 
-#endif  // _POSITION_HOLDER_H_
+#endif  // _POSITION_HOLDER_CONTROL_LOOP_H_

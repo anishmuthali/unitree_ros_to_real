@@ -6,6 +6,7 @@ uint8 bandWidth                     # Old version Aliengo does not have
 uint8 mode
 float32 progress                    # new on Go1, reserve
 IMU imu
+MotorState[20] motorState
 uint8 gaitType                      # new on Go1, 0.idle  1.trot  2.trot running  3.climb stair
 float32 footRaiseHeight             # (unit: m, default: 0.08m), foot up height while walking
 float32[3] position                 # (unit: m), from own odometry in inertial frame, usually drift
