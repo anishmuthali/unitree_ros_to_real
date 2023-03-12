@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 from matplotlib import cm
 import matplotlib
 
-from utils.generate_vel_profile import get_training_data_from_waypoints
+from utils.generate_vel_profile import get_multiple_velocity_profiles_from_random_waypoints
 from utils.robot_data_collection import RobotDataCollection
 
 markersize_x0 = 10
@@ -39,6 +39,15 @@ def main():
     2. Publish the the velocity profile to the robot
     3. Collect data by subscribing to a few topics
 
+
+
+
+    1) Work on RobotDataCollection, collect the vicon data
+    2) Collect the foot force sensor data; make sure they're coming; if not, look at their github repos, older version, see if changing the message schanegs something
+    3) Figure out the eurler angles from quaternions
+    4) Send videos to Claire
+
+
     """
 
     np.random.seed(1)
@@ -48,7 +57,7 @@ def main():
     save_data_trajs_dict = None
     which_trajectory = 0
     deltaT = 1./rate_freq_send_commands
-    state_tot, vel_tot, Nsteps_control, Ntrajs = get_training_data_from_waypoints(deltaT=deltaT,which_trajectory=which_trajectory,
+    state_tot, vel_tot, Nsteps_control, Ntrajs = get_multiple_velocity_profiles_from_random_waypoints(deltaT=deltaT,which_trajectory=which_trajectory,
                                                                                     save_data_trajs_dict=save_data_trajs_dict,block_plot=False,plotting=False)
     # vel_tot: [Ntrajs,Nsteps_tot,2]
 

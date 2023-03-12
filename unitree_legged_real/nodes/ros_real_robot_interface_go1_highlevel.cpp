@@ -122,8 +122,8 @@ int main(int argc, char *argv[])
 
     // Initialize global variables:
     unitree_legged_msgs::HighState state_msg;
-    ros::Publisher pub_low = nh.advertise<unitree_legged_msgs::HighState>(topic_publish_robot_state, 100);
-    ros::Subscriber sub_low = nh.subscribe(topic_subscribe_to_user_commands, 100, &ROSRealRobotInterfaceGo1HighLevel::highCmdCallback, &ros_robot_interface_go1_highlevel); // Receive commands from the network
+    ros::Publisher pub_high_state = nh.advertise<unitree_legged_msgs::HighState>(topic_publish_robot_state, 100);
+    ros::Subscriber sub_high_cmd = nh.subscribe(topic_subscribe_to_user_commands, 100, &ROSRealRobotInterfaceGo1HighLevel::highCmdCallback, &ros_robot_interface_go1_highlevel); // Receive commands from the network; NOTE: sub_high_cmd ahdnler not needed, could omit
 
 
     std::cout << "[WARNING]: Control level is set to HIGHLEVEL." << std::endl
@@ -142,9 +142,12 @@ int main(int argc, char *argv[])
 
         // Publish the current state:
         state_msg = ToRos(ros_robot_interface_go1_highlevel.state);
-        pub_low.publish(state_msg);
+        pub_high_state.publish(state_msg);
 
-        ros::spinOnce(); // Go through the callbacks and fill position2hold with the commands collected from the network in ros_robot_interface_go1_highlevel.highCmdCallback()
+        // DBG TODO
+        std::cout << "Could it be that ToRos() is not converting it properly? Why aren't we getting foot readings?\n";
+
+        ros::spinOnce(); // Go through the callbacks created otuside this loop; specifically, check for new user commands inside the callback ceated with the subscriber sub_high_cmd
         loop_rate.sleep();
     }
 
