@@ -12,20 +12,6 @@ import unitree_legged_msgs.msg # Located at /home/ubuntu/mounted_home/work/code_
 import std_msgs.msg
 import ood_gpssm_msgs.msg
 
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from matplotlib import cm
-import matplotlib
-
-markersize_x0 = 10
-markersize_trajs = 0.4
-fontsize_labels = 25
-matplotlib.rc('xtick', labelsize=fontsize_labels)
-matplotlib.rc('ytick', labelsize=fontsize_labels)
-matplotlib.rc('text', usetex=False)
-# matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
-plt.rc('legend',fontsize=fontsize_labels+2)
-
 msg_data_collection = ood_gpssm_msgs.msg.DataCollection()
 msg_data_collection.start = False
 msg_data_collection.stop = False
@@ -53,8 +39,8 @@ def callback_go1_state(msg_in):
 if __name__ == "__main__":
 
 
-    path2save = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/experiments_go1" # ubuntu VM
-    # path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/experiments_go1" # robot's laptop
+    path2save = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
+    # path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
 
 
     # rostopic pub --once /experiments_gpssm_ood/data_collection_triggers ood_gpssm_msgs/DataCollection '{start: True}'
@@ -114,7 +100,8 @@ if __name__ == "__main__":
             ii = 0
 
         if msg_data_collection.stop and not collect_data_on: # msg_data_collection.stop is global, written inside its callback
-            rospy.loginfo("Data collection hasn't started yet...")
+            rospy.loginfo("Someone is trying to stop data collection, but data collection hasn't started yet...")
+            msg_data_collection.stop = False
 
         if collect_data_on and (ii >= Nsteps_total or msg_data_collection.stop): # Check termination criterion
             

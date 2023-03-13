@@ -4,7 +4,7 @@ import pdb
 
 import pickle
 import math
-from min_jerk_gen import min_jerk
+from .min_jerk_gen import min_jerk
 
 import matplotlib.pyplot as plt
 import matplotlib
