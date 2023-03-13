@@ -54,6 +54,10 @@ if __name__ == "__main__":
 
     path2save = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/experiments_go1" # ubuntu VM
     # path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/experiments_go1" # robot's laptop
+
+
+    # rostopic pub --once /experiments_gpssm_ood/data_collection_triggers ood_gpssm_msgs/DataCollection '{start: True}'
+    # rostopic pub --once /experiments_gpssm_ood/data_collection_triggers ood_gpssm_msgs/DataCollection '{stop: True}'
     
     np.random.seed(1)
 

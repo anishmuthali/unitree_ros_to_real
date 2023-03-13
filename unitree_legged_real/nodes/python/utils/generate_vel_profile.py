@@ -9,6 +9,8 @@ from min_jerk_gen import min_jerk
 import matplotlib.pyplot as plt
 import matplotlib
 
+import rospy
+
 markersize_x0 = 10
 markersize_trajs = 0.4
 fontsize_labels = 25
@@ -35,7 +37,7 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
     # Number of steps:
     Nsteps = int(time_tot/deltaT)
     Nsteps_tot = Nsteps + 2 # We add 2 because numerical differentiation will suppress 2 points
-    print(" * Generating trajectory ...")
+    rospy.loginfo("Generating trajectory ...")
     pos_profile,_ = min_jerk(pos=pos_waypoints, dur=Nsteps_tot, vel=None, acc=None, psg=None) # [Nsteps_tot, D]
 
     # Velocity profiles and heading with numerical differentiation:
@@ -69,7 +71,7 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
         hdl_splots_data[2].plot(time_vec,state_tot[:,2],lw=1,alpha=0.3,color="navy")
         hdl_splots_data[2].set_ylabel(r"$\theta$ [rad/s]",fontsize=fontsize_labels)
         hdl_splots_data[2].set_title("Heading [rad]",fontsize=fontsize_labels)
-        
+
         hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
         hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
         hdl_splots_data[-1].set_xticks([time_vec[0],time_vec[-1]])

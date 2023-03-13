@@ -53,13 +53,18 @@ if __name__ == "__main__":
     save_data_trajs_dict = None
     deltaT = 1./rate_freq_send_commands
 
-    time_tot = 5.0 # sec
+    time_tot = 15.0 # sec
     pos_waypoints = np.array(   [[0.0,0.0],
                                 [1.5,1.5],
                                 [-1.5,2.5],
                                 [0.0,4.0]])
 
     state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+    if np.any(abs(vel_tot[:,0]) < 1.0):
+        rospy.logerr("Trajectory not accepted; limit of 1 m/s reached. Try a larger time horizon. This program will terminate. Press any key to terminate.")
+        input()
+        raise ValueError("Invalid trajectory")
 
     rospy.init_node("node_walk_open_loop", anonymous=False)
     ros_loop = rospy.Rate(rate_freq_send_commands) # Hz
@@ -85,16 +90,16 @@ if __name__ == "__main__":
     msg_high_cmd.mode = 2
     msg_high_cmd.gaitType = 1 # 0.idle  1.trot  2.trot running  3.climb stair
     msg_high_cmd.velocity[0] = 0.00 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
-    msg_high_cmd.bodyHeight = 0.0 # # (unit: m, default: 0.28m) -> this is measured w.r.t the current height....
+    msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....
     msg_high_cmd.yawSpeed = 0.0
 
 
     collect_data = True
 
     Nsteps = vel_tot.shape[0]
-    rospy.loginfo("Velocity profile will be published at rate {0:d} for {1:2.2f} seconds ({2:d} steps)".format(rate_freq_send_commands,float(time_tot),Nsteps))
+    rospy.loginfo("Velocity profile will be published at {0:d} Hz for {1:2.2f} seconds ({2:d} steps)".format(rate_freq_send_commands,float(time_tot),Nsteps))
     if collect_data: rospy.loginfo("Data will be automatically collected and saved ...")
-    rospy.loginfo("Ready to start the trajectory; press any key to continue ...")
+    rospy.loginfo("Ready to send the velocity profile to the robot; press any key to continue ...")
     input()
 
     # Activate data collection here:
@@ -102,6 +107,7 @@ if __name__ == "__main__":
         time_pause = 2
         rospy.loginfo("Starting data collection! Pausing for {0:d} sec, in order for the message to propagate ...".format(time_pause))
         msg_data_collection.start = True
+        msg_data_collection.stop = False
         pub_data_collection_triggers.publish(msg_data_collection)
         time.sleep(time_pause) # Wait a bit for the message to propagate
 
@@ -124,19 +130,20 @@ if __name__ == "__main__":
     msg_high_cmd.mode = 1 # TODO: Shouldn't this be 0?
     msg_high_cmd.gaitType = 0 # 0.idle  1.trot  2.trot running  3.climb stair
     msg_high_cmd.velocity[0] = 0.0 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
-    msg_high_cmd.bodyHeight = 0.0 # # (unit: m, default: 0.28m)
-    ii = 0
-    while ii < 100:
+    msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....
+    tt = 0
+    while tt < 100:
         pub2high_cmd.publish(msg_high_cmd)
         ros_loop.sleep()
-        ii += 1
+        tt += 1
 
 
     # Activate data collection here:
     if collect_data: 
         rospy.loginfo("Stopping data collection!")
         msg_data_collection.stop = True
+        msg_data_collection.start = False
         pub_data_collection_triggers.publish(msg_data_collection)
 
-    rospy.loginfo("exiting; node finished!")
+    rospy.loginfo("Exiting; node finished!")
 
