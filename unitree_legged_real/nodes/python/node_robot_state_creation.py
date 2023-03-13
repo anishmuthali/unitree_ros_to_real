@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 import time
 import pdb
@@ -54,7 +55,7 @@ class RobotStateCreationNode():
         rate_main_loop: scalar, frequency in Hz
         """
 
-        rospy.init_node("robot_state_creation_node", anonymous=False)
+        rospy.init_node("node_robot_state_creation", anonymous=False)
         ros_loop = rospy.Rate(rate_main_loop) # Hz
 
         time_sleep = 2.0

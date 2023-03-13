@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import numpy as np
 import pdb
@@ -115,8 +116,8 @@ if __name__ == "__main__":
     tt = 0
     while tt < Nsteps:
 
-        msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
-        msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Ntrajs,Nsteps_tot,2]
+        msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Nsteps_tot,2]
+        msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Nsteps_tot,2]
         
         pub2high_cmd.publish(msg_high_cmd)
 

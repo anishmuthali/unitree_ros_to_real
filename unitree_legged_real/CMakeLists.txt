@@ -80,3 +80,9 @@ add_dependencies(ros_real_robot_interface_go1_highlevel ${${PROJECT_NAME}_EXPORT
 # target_link_libraries(walk_lcm_mod ${EXTRA_LIBS} ${catkin_LIBRARIES})
 # add_dependencies(walk_lcm_mod ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+
+# Python nodes:
+
+catkin_install_python(PROGRAMS nodes/python/node_data_collection.py nodes/python/node_robot_state_creation.py nodes/python/node_walk_open_loop.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
