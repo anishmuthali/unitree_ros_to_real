@@ -33,37 +33,43 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
     time_tot = 5.0 # sec
 
     # Number of steps:
-    Nsteps = int(time_tot/deltaT) + 2 # We add 2 because numerical differentiation will suppress 2 points
+    Nsteps = int(time_tot/deltaT)
+    Nsteps_tot = Nsteps + 2 # We add 2 because numerical differentiation will suppress 2 points
     print(" * Generating trajectory ...")
-    pos_profile,_ = min_jerk(pos=pos_waypoints, dur=Nsteps, vel=None, acc=None, psg=None) # [Nsteps, D]
+    pos_profile,_ = min_jerk(pos=pos_waypoints, dur=Nsteps_tot, vel=None, acc=None, psg=None) # [Nsteps_tot, D]
 
     # Velocity profiles and heading with numerical differentiation:
-    vel_profile_batch = np.zeros((Nsteps-1,2))
-    th_profile_batch = np.zeros((Nsteps-1,1))
-    th_vel_profile_batch = np.zeros((Nsteps-2,1))
-    vel_profile_batch[:,0] = np.diff(pos_profile[:,0],axis=1) / deltaT
-    vel_profile_batch[:,1] = np.diff(pos_profile[:,1],axis=1) / deltaT
+    vel_profile_batch = np.zeros((Nsteps_tot-1,2))
+    th_profile_batch = np.zeros((Nsteps_tot-1,1))
+    th_vel_profile_batch = np.zeros((Nsteps_tot-2,1))
+    vel_profile_batch[:,0] = np.diff(pos_profile[:,0]) / deltaT
+    vel_profile_batch[:,1] = np.diff(pos_profile[:,1]) / deltaT
     vel_mod_profile_batch = np.sqrt(vel_profile_batch[:,0:1]**2 + vel_profile_batch[:,1:2]**2)
     th_profile_batch[:,0] = np.arctan2(vel_profile_batch[:,1], vel_profile_batch[:,0])
-    th_vel_profile_batch[:,0] = np.diff(th_profile_batch[:,0],axis=1) / deltaT
+    th_vel_profile_batch[:,0] = np.diff(th_profile_batch[:,0]) / deltaT
 
-    state_tot = np.concatenate((pos_profile,th_profile_batch),axis=1) # [Nsteps_tot,3], with Nsteps_tot=Nsteps-2 due to the integration issues
-    vel_tot = np.concatenate((vel_mod_profile_batch,th_vel_profile_batch),axis=1) # [Nsteps_tot,2], with Nsteps_tot=Nsteps-2 due to the integration issues
+    state_tot = np.concatenate((pos_profile[0:Nsteps,:],th_profile_batch[0:Nsteps,:]),axis=1) # [Nsteps_tot,3], with Nsteps_tot=Nsteps-2 due to the integration issues
+    vel_tot = np.concatenate((vel_mod_profile_batch[0:Nsteps,:],th_vel_profile_batch),axis=1) # [Nsteps_tot,2], with Nsteps_tot=Nsteps-2 due to the integration issues
+
 
     if plotting:
 
         # Velocity profiles:
-        hdl_fig_data, hdl_splots_data = plt.subplots(4,1,figsize=(12,8),sharex=True)
-        time_vec = np.arange(0,Nsteps-1)*deltaT
-        hdl_splots_data[0].plot(time_vec,vel_profile_batch[:,0],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[1].plot(time_vec,vel_profile_batch[:,1],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[2].plot(time_vec,vel_mod_profile_batch[:],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[3].plot(time_vec[0:-1],th_vel_profile_batch[:,0],lw=1,alpha=0.3,color="navy")
+        hdl_fig_data, hdl_splots_data = plt.subplots(3,1,figsize=(12,8),sharex=True)
+        time_vec = np.arange(0,Nsteps)*deltaT
 
-        hdl_splots_data[0].set_ylabel(r"$v_x$ [m/s]",fontsize=fontsize_labels)
-        hdl_splots_data[1].set_ylabel(r"$v_y$ [m/s]",fontsize=fontsize_labels)
-        hdl_splots_data[2].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
-        hdl_splots_data[3].set_ylabel(r"$\dot{\theta}$ [rad/s]",fontsize=fontsize_labels)
+        hdl_splots_data[0].plot(time_vec,vel_tot[:,0],lw=1,alpha=0.3,color="navy")
+        hdl_splots_data[0].set_title("Forward velocity",fontsize=fontsize_labels)
+        hdl_splots_data[0].set_ylabel(r"$v$ [m/s]",fontsize=fontsize_labels)
+
+        hdl_splots_data[1].plot(time_vec,vel_tot[:,1],lw=1,alpha=0.3,color="navy")
+        hdl_splots_data[1].set_ylabel(r"$\dot{\theta}$ [rad/s]",fontsize=fontsize_labels)
+        hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
+
+        hdl_splots_data[2].plot(time_vec,state_tot[:,2],lw=1,alpha=0.3,color="navy")
+        hdl_splots_data[2].set_ylabel(r"$\theta$ [rad/s]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_title("Heading [rad]",fontsize=fontsize_labels)
+        
         hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
         hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
         hdl_splots_data[-1].set_xticks([time_vec[0],time_vec[-1]])
@@ -71,9 +77,9 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
 
         # Trajectories:
         hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(12,8),sharex=False)
-        hdl_splots_data.plot(pos_profile[:,0],pos_profile[:,1],alpha=0.3,color="navy")
-        hdl_splots_data.plot(pos_profile[-1,0],pos_profile[-1,1],marker="x",color="black",markersize=5)
-        hdl_splots_data.plot(pos_profile[0,0],pos_profile[0,1],marker=".",color="green",markersize=3)
+        hdl_splots_data.plot(state_tot[:,0],state_tot[:,1],alpha=0.3,color="navy")
+        hdl_splots_data.plot(state_tot[-1,0],state_tot[-1,1],marker="x",color="black",markersize=5)
+        hdl_splots_data.plot(state_tot[0,0],state_tot[0,1],marker=".",color="green",markersize=3)
         hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
         hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
 

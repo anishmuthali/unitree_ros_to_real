@@ -58,8 +58,8 @@ class RobotStateCreationNode():
         ros_loop = rospy.Rate(rate_main_loop) # Hz
 
         time_sleep = 2.0
-        print("Sleeping for {2:f} sec ...".format(time_sleep))
-        print("Publishing Go1State.msg indefinitely ... ")
+        rospy.loginfo("Sleeping for {0:f} sec ...".format(time_sleep))
+        rospy.loginfo("Publishing Go1State.msg indefinitely ... ")
         time.sleep(time_sleep)
 
         # Consider having this on a separate thread using import threading

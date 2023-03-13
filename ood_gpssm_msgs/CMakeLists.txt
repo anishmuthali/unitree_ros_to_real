@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   DataCollection.msg
-  Go1Control.msg
   Go1State.msg
 )
 

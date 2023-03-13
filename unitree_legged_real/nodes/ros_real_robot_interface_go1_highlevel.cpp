@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
         pub_high_state.publish(state_msg);
 
         // DBG TODO
-        std::cout << "Could it be that ToRos() is not converting it properly? Why aren't we getting foot readings?\n";
+        // std::cout << "Could it be that ToRos() is not converting it properly? Why aren't we getting foot readings?\n";
 
         ros::spinOnce(); // Go through the callbacks created otuside this loop; specifically, check for new user commands inside the callback ceated with the subscriber sub_high_cmd
         loop_rate.sleep();

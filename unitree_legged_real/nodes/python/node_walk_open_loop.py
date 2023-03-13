@@ -15,8 +15,7 @@ import matplotlib.colors as mcolors
 from matplotlib import cm
 import matplotlib
 
-from utils.generate_vel_profile import get_training_data_from_waypoints
-from utils.robot_data_collection import RobotDataCollection
+from utils.generate_vel_profile import get_velocity_profile_given_waypoints
 
 markersize_x0 = 10
 markersize_trajs = 0.4
@@ -30,7 +29,9 @@ plt.rc('legend',fontsize=fontsize_labels+2)
 
 HIGHLEVEL = 0x00
 
-def callback_go1_state(self,msg_in):
+msg_go1_state = ood_gpssm_msgs.msg.Go1State()
+
+def callback_go1_state(msg_in):
     msg_go1_state = msg_in
 
 
@@ -53,15 +54,15 @@ if __name__ == "__main__":
     deltaT = 1./rate_freq_send_commands
 
     time_tot = 5.0 # sec
-    pos_waypoints = np.array(   [0.0,0.0],
+    pos_waypoints = np.array(   [[0.0,0.0],
                                 [1.5,1.5],
                                 [-1.5,2.5],
-                                [0.0,4.0])
+                                [0.0,4.0]])
+
     state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
     rospy.init_node("node_walk_open_loop", anonymous=False)
-    rate_freq_read_state = 500 # Hz
-    rate_read_state = rospy.Rate(rate_freq_read_state) # Hz
+    ros_loop = rospy.Rate(rate_freq_send_commands) # Hz
 
     # Subscribe to RobotState:
     topic_robot_state = "/experiments_gpssm_ood/robot_state"
@@ -90,8 +91,8 @@ if __name__ == "__main__":
 
     collect_data = True
 
-    Nsteps = vel_tot.shape[1]
-    rospy.loginfo("Velocity profile will be published at rate {0:d} for {1:2.2f} seconds".format(rate_freq_send_commands,float(Nsteps/rate_freq_send_commands)))
+    Nsteps = vel_tot.shape[0]
+    rospy.loginfo("Velocity profile will be published at rate {0:d} for {1:2.2f} seconds ({2:d} steps)".format(rate_freq_send_commands,float(time_tot),Nsteps))
     if collect_data: rospy.loginfo("Data will be automatically collected and saved ...")
     rospy.loginfo("Ready to start the trajectory; press any key to continue ...")
     input()
@@ -101,7 +102,7 @@ if __name__ == "__main__":
         time_pause = 2
         rospy.loginfo("Starting data collection! Pausing for {0:d} sec, in order for the message to propagate ...".format(time_pause))
         msg_data_collection.start = True
-        msg_data_collection.publish(msg_data_collection)
+        pub_data_collection_triggers.publish(msg_data_collection)
         time.sleep(time_pause) # Wait a bit for the message to propagate
 
     rospy.loginfo("Starting loop now!")
@@ -113,7 +114,7 @@ if __name__ == "__main__":
         
         pub2high_cmd.publish(msg_high_cmd)
 
-        rate_read_state.sleep()
+        ros_loop.sleep()
 
         tt += 1
 
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     ii = 0
     while ii < 100:
         pub2high_cmd.publish(msg_high_cmd)
-        rate_read_state.sleep()
+        ros_loop.sleep()
         ii += 1
 
 
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     if collect_data: 
         rospy.loginfo("Stopping data collection!")
         msg_data_collection.stop = True
-        msg_data_collection.publish(msg_data_collection)
+        pub_data_collection_triggers.publish(msg_data_collection)
 
     rospy.loginfo("exiting; node finished!")
 
