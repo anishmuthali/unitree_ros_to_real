@@ -1,6 +1,5 @@
-### amarco added:
 ### Version
-* Tag: 3.4.0
+* Checked out tag: 3.4.0 in both master and dev_amarco branches.
 * https://github.com/unitreerobotics/unitree_ros_to_real/tree/v3.4.0
 * New branch created using
 ```bash
