@@ -9,8 +9,6 @@ from .min_jerk_gen import min_jerk
 import matplotlib.pyplot as plt
 import matplotlib
 
-import rospy
-
 markersize_x0 = 10
 markersize_trajs = 0.4
 fontsize_labels = 25
@@ -31,13 +29,10 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
     Ytrain: [(Nsteps-3)*Ntrajs, dim_x]
     """
 
-    # Trajectory duration:
-    time_tot = 5.0 # sec
-
     # Number of steps:
     Nsteps = int(time_tot/deltaT)
     Nsteps_tot = Nsteps + 2 # We add 2 because numerical differentiation will suppress 2 points
-    rospy.loginfo("Generating trajectory ...")
+    print("Generating trajectory ...")
     pos_profile,_ = min_jerk(pos=pos_waypoints, dur=Nsteps_tot, vel=None, acc=None, psg=None) # [Nsteps_tot, D]
 
     # Velocity profiles and heading with numerical differentiation:

@@ -36,6 +36,53 @@ def callback_go1_state(msg_in):
     msg_go1_state = msg_in
 
 
+def go_home_heading(msg_high_cmd,pub2high_cmd,ros_loop,yaw_des,Nsteps_timeout):
+    """
+    yaw_des: given in Vicon coordinates, zero angle is at X axis; angle grows positive in anti-clockwise direction (from top view)
+    heading_des: zero heading is at the Y axis; angle grows positive in anti-clockwise direction (from top view)
+
+    We want the robot to be facing towards the tangent indicated by yaw_des. Hence, the desired heading is:
+    heading_des = yaw_des - pi/2
+
+    """
+
+    global msg_go1_state
+
+    rospy.loginfo("About to rotate the robot to the initial heading, yaw_des = {0:f} [rad] | yaw_cur = {1:f} [rad] | Will time out after {2:d} steps".format(yaw_des,msg_go1_state.orientation.z,Nsteps_timeout))
+    rospy.loginfo("Press return to initiate the movement ...")
+    input()
+
+    heading_des = yaw_des - math.pi/2.
+
+    tt = 0
+    Kp_heading = 0.1
+    tol_error = 0.1
+    error = np.inf
+    rospy.loginfo("Rotating the robot in place using a P controller ...")
+    while tt < Nsteps_timeout and abs(error) > tol_error:
+
+        # Read current yaw angle:
+        yaw_curr = msg_go1_state.orientation.z # w.r.t Vicon fram
+
+        error = (heading_des - yaw_curr)
+
+        # P controller: rotate in place
+        msg_high_cmd.yawSpeed = Kp_heading * error
+        msg_high_cmd.velocity[0] = 0.0
+        msg_high_cmd.velocity[1] = 0.0
+
+        pub2high_cmd.publish(msg_high_cmd)
+
+        ros_loop.sleep()
+
+        tt += 1
+
+    rospy.loginfo("Done!")
+    if tt >= Nsteps_timeout: rospy.loginfo("Required tolerance not reached; timed out")
+    if abs(error) < tol_error: rospy.loginfo("Reached desired angle within required tolerance: {0:f} < {1:f} [rad]".format(abs(error),tol_error))
+    
+
+
 if __name__ == "__main__":
 
     """
@@ -60,10 +107,10 @@ if __name__ == "__main__":
                                 [-1.5,2.5],
                                 [0.0,4.0]])
 
-    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=True,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
-    if np.any(abs(vel_tot[:,0]) < 1.0):
-        rospy.logerr("Trajectory not accepted; limit of 1 m/s reached. Try a larger time horizon. This program will terminate. Press any key to terminate.")
+    if np.any(abs(vel_tot[:,0]) > 1.0):
+        rospy.logerr("Trajectory not accepted; limit of 1 m/s reached. Try a larger time horizon. This program will terminate. Press return to terminate.")
         input()
         raise ValueError("Invalid trajectory")
 
@@ -94,13 +141,18 @@ if __name__ == "__main__":
     msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....
     msg_high_cmd.yawSpeed = 0.0
 
-
     collect_data = True
+
+    # Go to initial heading:
+    yaw_des = state_tot[0,2]
+    timeout_go_home_heading = 5.0 # sec
+    go_home_heading(msg_high_cmd,pub2high_cmd,ros_loop,yaw_des,Nsteps_timeout=int(timeout_go_home_heading*rate_freq_send_commands))
+
 
     Nsteps = vel_tot.shape[0]
     rospy.loginfo("Velocity profile will be published at {0:d} Hz for {1:2.2f} seconds ({2:d} steps)".format(rate_freq_send_commands,float(time_tot),Nsteps))
     if collect_data: rospy.loginfo("Data will be automatically collected and saved ...")
-    rospy.loginfo("Ready to send the velocity profile to the robot; press any key to continue ...")
+    rospy.loginfo("Ready to send the velocity profile to the robot; press return to continue ...")
     input()
 
     # Activate data collection here:
