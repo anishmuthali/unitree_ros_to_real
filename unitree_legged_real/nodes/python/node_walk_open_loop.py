@@ -33,6 +33,8 @@ HIGHLEVEL = 0x00
 msg_go1_state = ood_gpssm_msgs.msg.Go1State()
 
 def callback_go1_state(msg_in):
+    # print("in calback")
+    global msg_go1_state
     msg_go1_state = msg_in
 
 
@@ -55,14 +57,14 @@ def go_home_heading(msg_high_cmd,pub2high_cmd,ros_loop,yaw_des,Nsteps_timeout):
     heading_des = yaw_des - math.pi/2.
 
     tt = 0
-    Kp_heading = 0.1
+    Kp_heading = 1.0
     tol_error = 0.1
     error = np.inf
     rospy.loginfo("Rotating the robot in place using a P controller ...")
     while tt < Nsteps_timeout and abs(error) > tol_error:
 
         # Read current yaw angle:
-        yaw_curr = msg_go1_state.orientation.z # w.r.t Vicon fram
+        yaw_curr = msg_go1_state.orientation.z # w.r.t Vicon frame
 
         error = (heading_des - yaw_curr)
 
@@ -96,18 +98,46 @@ if __name__ == "__main__":
 
     np.random.seed(1)
 
-    rate_freq_send_commands = 100 # Hz
+    rate_freq_send_commands = 120 # Hz
     # save_data_trajs_dict = dict(save=True,path2data="/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/trajs_generated/trajs.pickle")
     save_data_trajs_dict = None
     deltaT = 1./rate_freq_send_commands
 
     time_tot = 15.0 # sec
-    pos_waypoints = np.array(   [[0.0,0.0],
-                                [1.5,1.5],
-                                [-1.5,2.5],
-                                [0.0,4.0]])
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [1.0,1.0],
+    #                             [-1.0,2.0],
+    #                             [0.0,3.5]])
 
-    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=True,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+    # time_tot = 15.0 # sec
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [0.0,3.0]])
+
+    # # S-traj-1
+    # time_tot = 15.0 # sec
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [1.0,1.0],
+    #                             [-1.0,2.0],
+    #                             [0.0,3.0]])
+
+    # # S-traj-2
+    # time_tot = 15.0 # sec
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [-1.0,1.0],
+    #                             [1.0,2.0],
+    #                             [0.0,3.0]])
+
+    # # Straight-traj-left_corner
+    # time_tot = 7.5 # sec
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [-1.5,3.0]])
+
+    # Straight-traj-right_corner
+    time_tot = 7.5 # sec
+    pos_waypoints = np.array(   [[0.0,0.0],
+                                [1.0,3.0]])
+
+    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
     if np.any(abs(vel_tot[:,0]) > 1.0):
         rospy.logerr("Trajectory not accepted; limit of 1 m/s reached. Try a larger time horizon. This program will terminate. Press return to terminate.")
@@ -137,7 +167,7 @@ if __name__ == "__main__":
     msg_high_cmd.levelFlag = HIGHLEVEL
     msg_high_cmd.mode = 2
     msg_high_cmd.gaitType = 1 # 0.idle  1.trot  2.trot running  3.climb stair
-    msg_high_cmd.velocity[0] = 0.00 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
+    msg_high_cmd.velocity[0] = 0.0 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
     msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....
     msg_high_cmd.yawSpeed = 0.0
 
@@ -168,6 +198,11 @@ if __name__ == "__main__":
     tt = 0
     while tt < Nsteps:
 
+        # vel_des = vel_tot[tt,0]
+        # vel_cur = np.sqrt(msg_go1_state.twist.linear.x**2 + msg_go1_state.twist.linear.y**2)
+        # vel_send = vel_des + 1.0*(vel_des-vel_cur)
+
+        # msg_high_cmd.velocity[0] = vel_send
         msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Nsteps_tot,2]
         msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Nsteps_tot,2]
         
@@ -180,7 +215,7 @@ if __name__ == "__main__":
     # Reset to mode 0:
     rospy.loginfo("Trajectory completed!")
     rospy.loginfo("Back to standing still....")
-    msg_high_cmd.mode = 1 # TODO: Shouldn't this be 0?
+    msg_high_cmd.mode = 0 # TODO: Shouldn't this be 0?
     msg_high_cmd.gaitType = 0 # 0.idle  1.trot  2.trot running  3.climb stair
     msg_high_cmd.velocity[0] = 0.0 # [-1,1] # (unit: m/s), forwardSpeed, sideSpeed in body frame
     msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....

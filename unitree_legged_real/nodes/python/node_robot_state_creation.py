@@ -49,6 +49,10 @@ class RobotStateCreationNode():
         self.pub_robot_state = rospy.Publisher(topic_robot_state, ood_gpssm_msgs.msg.Go1State, queue_size=2)
 
 
+        # self.deltaT_dynamic_measure = np.zeros(2400)
+        # self.cc_dbg = 0
+
+
     def collect_and_publish(self,rate_main_loop):
         """
 
@@ -90,7 +94,10 @@ class RobotStateCreationNode():
         self.robot_orientation_quat[1] = msg_in.transform.rotation.y
         self.robot_orientation_quat[2] = msg_in.transform.rotation.z
         self.robot_orientation_quat[3] = msg_in.transform.rotation.w
-        self.robot_orientation_euler = euler_from_quaternion(self.robot_orientation_quat)
+        robot_orientation_euler_tuple = euler_from_quaternion(self.robot_orientation_quat)
+        self.robot_orientation_euler[0] = robot_orientation_euler_tuple[0]
+        self.robot_orientation_euler[1] = robot_orientation_euler_tuple[1]
+        self.robot_orientation_euler[2] = robot_orientation_euler_tuple[2]
 
         # First time we enter this callback:
         if self.time_vicon_prev is None:
@@ -103,9 +110,29 @@ class RobotStateCreationNode():
         deltaT_dynamic = time_vicon_curr - self.time_vicon_prev
         self.time_vicon_prev = time_vicon_curr
 
+        deltaT_dynamic = 1./120
+
+        # print(self.robot_position)
+        # print(self.robot_orientation_euler)
+
+        # if self.cc_dbg < self.deltaT_dynamic_measure.shape[0]:
+        #     self.deltaT_dynamic_measure[self.cc_dbg] = deltaT_dynamic
+        #     self.cc_dbg += 1
+        # else:
+        #     mean_deltaT = np.mean(self.deltaT_dynamic_measure)
+        #     std_deltaT = np.std(self.deltaT_dynamic_measure)
+        #     max_deltaT = np.amax(self.deltaT_dynamic_measure)
+        #     min_deltaT = np.amin(self.deltaT_dynamic_measure)
+        #     print("\nmean_deltaT:",mean_deltaT)
+        #     print("std_deltaT:",std_deltaT)
+        #     print("max_deltaT:",max_deltaT)
+        #     print("min_deltaT:",min_deltaT)
+
         # Differentiate:
         self.robot_linear_velocity = self._differentiate_vicon_position(self.robot_position,deltaT_dynamic)
         self.robot_angular_velocity = self._differentiate_vicon_orientation(self.robot_orientation_euler,deltaT_dynamic)
+        # print(self.robot_linear_velocity)
+        # print(self.robot_angular_velocity)
 
 
     def _differentiate_vicon_position(self,robot_position_new,deltaT_dynamic):
@@ -119,7 +146,7 @@ class RobotStateCreationNode():
         robot_velocity = (robot_position_new - self.robot_position_prev) / deltaT_dynamic
 
         # Update:
-        self.robot_position_prev = robot_position_new
+        self.robot_position_prev = np.copy(robot_position_new)
 
         return robot_velocity
 
@@ -129,13 +156,13 @@ class RobotStateCreationNode():
         # First time; update and return
         if self.robot_orientation_prev is None:
             self.robot_orientation_prev = robot_orientation_new
-            return np.zeros(robot_position_new.shape)
+            return np.zeros(robot_orientation_new.shape)
 
         # Compute velocity:
         robot_yaw_vel = (robot_orientation_new - self.robot_orientation_prev) / deltaT_dynamic
 
         # Update:
-        self.robot_orientation_prev = robot_orientation_new
+        self.robot_orientation_prev = np.copy(robot_orientation_new)
 
         return robot_yaw_vel
 
