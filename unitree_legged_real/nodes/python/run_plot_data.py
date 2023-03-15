@@ -23,8 +23,8 @@ plt.rc('legend',fontsize=fontsize_labels+2)
 if __name__ == "__main__":
 
 	# path2save = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
-	path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
-	# path2save = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
+	# path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+	path2save = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
 
 	# name_file = "2023_03_13_13_01_09_experiments_go1trajs.pickle" # good, all signals coming, fixed time step
 	# name_file = "2023_03_13_13_16_04_experiments_go1trajs.pickle" # good, all signals coming, fixed time step, vel profile at 120 Hz
@@ -53,27 +53,17 @@ if __name__ == "__main__":
 	# name_file = "2023_03_13_14_34_49_experiments_go1trajs.pickle" # Straight-traj-left_corner, 2
 	# name_file = "2023_03_13_14_35_58_experiments_go1trajs.pickle" # Straight-traj-left_corner, 3
 	# name_file = "2023_03_13_14_37_16_experiments_go1trajs.pickle" # Straight-traj-left_corner, 4
-	# name_file = "2023_03_13_14_41_19_experiments_go1trajs.pickle" # Straight-traj-left_corner, 5
+	name_file = "2023_03_13_14_41_19_experiments_go1trajs.pickle" # Straight-traj-left_corner, 5
 
 	# name_file = "2023_03_13_14_45_19_experiments_go1trajs.pickle" # Straight-traj-right_corner, 1
 	# name_file = "2023_03_13_14_46_19_experiments_go1trajs.pickle" # Straight-traj-right_corner, 2
 	# name_file = "2023_03_13_14_52_59_experiments_go1trajs.pickle" # Straight-traj-right_corner, 3
 	# name_file = "2023_03_13_14_54_03_experiments_go1trajs.pickle" # Straight-traj-right_corner, 4
-	name_file = "2023_03_13_14_54_52_experiments_go1trajs.pickle" # Straight-traj-right_corner, 5
+	# name_file = "2023_03_13_14_54_52_experiments_go1trajs.pickle" # Straight-traj-right_corner, 5
 
 
 	
 
-
-	
-
-
-
-
-
-
-
-	
 	path2data = "{0:s}/{1:s}".format(path2save,name_file)
 
 	print("Loading {0:s} ...".format(path2data))
@@ -81,11 +71,20 @@ if __name__ == "__main__":
 	data_dict = pickle.load(file)
 	file.close()
 
+	# Use time stamp to tell:
+	time_stamp = data_dict["time_stamp"]
+	if np.all(time_stamp != 0):
+		Ncut = time_stamp.shape[0]
+	else:
+		Ncut = np.arange(time_stamp.shape[0])[time_stamp[:,0] == 0][0]
+		for key, val in data_dict.items():
+			data_dict[key] = val[0:Ncut,:]
+
+	time_stamp = data_dict["time_stamp"]
 	robot_pos = data_dict["robot_pos"]
 	robot_vel = data_dict["robot_vel"]
 	robot_orientation = data_dict["robot_orientation"]
 	robot_angular_velocity = data_dict["robot_angular_velocity"]
-	time_stamp = data_dict["time_stamp"]
 	vel_forward_des = data_dict["vel_forward_des"]
 	vel_yaw_des = data_dict["vel_yaw_des"]
 
@@ -126,10 +125,12 @@ if __name__ == "__main__":
 
 	robot_vel_curr = np.sqrt(robot_vel[:,0]**2 + robot_vel[:,1]**2)
 	hdl_splots_data[0].plot(time_stamp,robot_vel_curr,lw=1,alpha=0.8,color="navy")
-	hdl_splots_data[0].plot(time_stamp,vel_forward_des,lw=1,alpha=0.3,color="navy")
+	hdl_splots_data[0].plot(time_stamp,vel_forward_des,lw=3,alpha=0.3,color="navy")
+	hdl_splots_data[0].set_title("Forward velocity",fontsize=fontsize_labels)
 
 	hdl_splots_data[1].plot(time_stamp,robot_angular_velocity[:,2],lw=1,alpha=0.8,color="navy")
-	hdl_splots_data[1].plot(time_stamp,vel_yaw_des,lw=1,alpha=0.3,color="navy")
+	hdl_splots_data[1].plot(time_stamp,vel_yaw_des,lw=3,alpha=0.3,color="navy")
+	hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
 
 	hdl_splots_data[-1].set_xlabel("time [sec]",fontsize=fontsize_labels)
 
@@ -140,6 +141,8 @@ if __name__ == "__main__":
 	hdl_splots_data.plot(robot_pos[:,0],robot_pos[:,1],lw=1,alpha=0.8,color="navy")
 	hdl_splots_data.set_xlabel("x [m]",fontsize=fontsize_labels)
 	hdl_splots_data.set_ylabel("y [m]",fontsize=fontsize_labels)
+	hdl_splots_data.set_xlim([-2.0,+2.0])
+	hdl_splots_data.set_ylim([-1.0,4.0])
 
 	plt.show(block=True)
 
