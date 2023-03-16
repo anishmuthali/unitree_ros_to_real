@@ -83,6 +83,6 @@ add_dependencies(ros_real_robot_interface_go1_highlevel ${${PROJECT_NAME}_EXPORT
 
 # Python nodes:
 
-catkin_install_python(PROGRAMS nodes/python/node_data_collection.py nodes/python/node_robot_state_creation.py nodes/python/node_walk_open_loop.py nodes/python/node_go_to_lowlevel.py
+catkin_install_python(PROGRAMS nodes/python/node_data_collection.py nodes/python/node_robot_state_creation.py nodes/python/node_walk_open_loop.py nodes/python/node_go_to_lowlevel.py nodes/python/node_ood_detection.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

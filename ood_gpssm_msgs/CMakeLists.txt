@@ -12,6 +12,7 @@ add_message_files(
   FILES
   DataCollection.msg
   Go1State.msg
+  Go1StatePredictions.msg
 )
 
 generate_messages(

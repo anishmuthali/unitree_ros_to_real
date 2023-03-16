@@ -173,7 +173,7 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 			vel_forward_des = data_dict["vel_forward_des"]
 			vel_yaw_des = data_dict["vel_yaw_des"]
 
-			state_and_control_curr_list += [np.concatenate([robot_pos[0:-1,0:2],robot_orientation[0:-1,2:3],vel_forward_des[0:-1,:],vel_yaw_des[0:-1,:]],axis=1)]
+			state_and_control_curr_list += [np.concatenate([robot_pos[0:-1,0:2],robot_orientation[0:-1,2:3],vel_forward_des[0:-1,:],vel_yaw_des[0:-1,:]],axis=1)] # [state: (x,y,th), control=(u_for,u_ang)]
 			state_next_list += [np.concatenate([robot_pos[1::,0:2],robot_orientation[1::,2:3]],axis=1)]
 
 		state_and_control_curr_traj_list += [np.concatenate(state_and_control_curr_list,axis=0)]
