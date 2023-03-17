@@ -1,4 +1,21 @@
-Packages Version: v3.8.0
+### Version
+* Checked out tag: 3.4.0 in both master and dev_amarco branches.
+* https://github.com/unitreerobotics/unitree_ros_to_real/tree/v3.4.0
+* New branch created using
+```bash
+git checkout -b <New Branch Name> <TAG Name>
+git checkout -b dev_amarco v3.4.0
+```
+`commit 3c0fe3c97d048464869074c90719997731333841 (HEAD -> dev_amarco, tag: v3.4.0)`
+
+
+
+### Notes
+1. The raspberry pi inside the robot (ssh pi@192.168.123.161) has a real time kernel. The following info is printed out on the terminal when you log in via ssh:
+`Linux raspberrypi 5.4.81-rt45-v8+ #9 SMP PREEMPT_RT Mon Dec 28 00:13:29 PST 2020 aarch64`
+
+
+Packages Version: v3.4.0
 
 # Introduction
 This package can send control command to real robot from ROS. You can do low-level control(namely control all joints on robot) and high-level control(namely control the walking direction and speed of robot).
