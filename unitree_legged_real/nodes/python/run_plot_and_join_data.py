@@ -51,8 +51,8 @@ if __name__ == "__main__":
 
 
 
-	# plot_all(data,path2load,subsample_every_nr_steps=10)
-	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=10)
+	plot_all(data,path2load,subsample_every_nr_steps=10)
+	# state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=10)
 	# pdb.set_trace()
 
 

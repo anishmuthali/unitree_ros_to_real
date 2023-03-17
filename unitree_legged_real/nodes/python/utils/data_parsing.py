@@ -18,7 +18,7 @@ matplotlib.rc('text', usetex=False)
 # matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
 plt.rc('legend',fontsize=fontsize_labels+2)
 
-def cut_data(path2data,subsample_every_nr_steps=1):
+def load_data_and_cut(path2data,subsample_every_nr_steps=1):
 
 	print("Loading {0:s} ...".format(path2data))
 	file = open(path2data, 'rb')
@@ -61,7 +61,7 @@ def plot_all(data,path2load,subsample_every_nr_steps=1):
 def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps=1):
 
 	path2data = "{0:s}/{1:s}".format(path2load,name_file)
-	data_dict = cut_data(path2data,subsample_every_nr_steps)
+	data_dict = load_data_and_cut(path2data,subsample_every_nr_steps)
 
 	time_stamp = data_dict["time_stamp"]
 	robot_pos = data_dict["robot_pos"]
@@ -163,7 +163,7 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 		for name_file in name_file_list:
 
 			path2data = "{0:s}/{1:s}".format(path2load,name_file)
-			data_dict = cut_data(path2data,subsample_every_nr_steps)
+			data_dict = load_data_and_cut(path2data,subsample_every_nr_steps)
 			
 			time_stamp = data_dict["time_stamp"]
 			robot_pos = data_dict["robot_pos"]

@@ -17,19 +17,30 @@ msg_high_cmd = unitree_legged_msgs.msg.HighCmd()
 msg_go1_state = ood_gpssm_msgs.msg.Go1StatePredictions()
 
 
-def predict_with_model(state_in,control_in):
+def predict_with_model_fake(state_in,control_in,Nrollouts):
     """
     state_in: [1,3]
     control_in: [Nhor-1,2]
 
-    state_out: [Nhor,3] (NOTE: the first state is equal to state_in)
+    state_out: [Nrollouts,Nhor,3] (NOTE: the first state is equal to state_in)
     """
 
-    return np.zeros((control_in.shape[0]+1,3))
+    t_steps = np.arange(control_in.shape[0]+1) / control_in.shape[0]
+
+    phase_list = [0.0, np.pi/4.0, np.pi/2.0]
+    pdb.set_trace()
+    
+    state_out_base = [np.sin(t_steps * np.pi*2. + phase) for phase in phase_list]
+    state_out_base_states = np.concatenate(state_out_base,axis=1)
+
+    state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + np.random.randn(Nrollouts,control_in.shape[0]+1,3)
+
+
+    return state_out_base_rollouts
 
 
 def OoD_detection(observations_hist,x_hindcast):
-    return 0.0
+    return 100*np.random.rand(1)
 
 def callback_go1_state(msg_in):
     # print("in calback")
@@ -103,7 +114,7 @@ if __name__ == "__main__":
         # Use model to predict past states up to the current one x(t) by starting at x(t-Nhor) and using the control sequence u(t-Nhor),u(t-Nhor+1),...,u(t-1)
         x_oldest = observations_hist[0,:] # The oldest observation is the first element in the history (FIFO sequence)
         u_seq = control_input_hist # We pass the entire sequence
-        x_hindcast = predict_with_model(state_in=x_oldest,control_in=u_seq) # [Nsamples,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
+        x_hindcast = predict_with_model_fake(state_in=x_oldest,control_in=u_seq) # [Nsamples,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
         loss_val_OoD = OoD_detection(observations_hist,x_hindcast)
 
         msg_state_predictions.predictions = np.reshape(x_hindcast,(-1))
