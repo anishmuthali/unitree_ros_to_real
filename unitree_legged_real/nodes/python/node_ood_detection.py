@@ -26,12 +26,11 @@ def predict_with_model_fake(state_in,control_in,Nrollouts):
     """
 
     t_steps = np.arange(control_in.shape[0]+1) / control_in.shape[0]
-
-    phase_list = [0.0, np.pi/4.0, np.pi/2.0]
+    phase_vec = np.ones((len(t_steps),1))*np.array([[0.0, np.pi/4.0, np.pi/2.0]])
+    freq_plus_phase = np.pi*2*np.reshape(t_steps,(-1,1)) + phase_vec
     pdb.set_trace()
     
-    state_out_base = [np.sin(t_steps * np.pi*2. + phase) for phase in phase_list]
-    state_out_base_states = np.concatenate(state_out_base,axis=1)
+    state_out_base_states = np.sin(freq_plus_phase)
 
     state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + np.random.randn(Nrollouts,control_in.shape[0]+1,3)
 
@@ -89,7 +88,7 @@ if __name__ == "__main__":
     dim_x = 3
     dim_u = 2
     Nhor = 10
-    Nsamples = 15
+    Nrollouts = 15
     observations_hist = np.zeros((Nhor,dim_x)) # History of observations (FIFO sequence)
     control_input_hist = np.zeros((Nhor-1,dim_u)) # History of control inputs (FIFO sequence)
     state_in = np.zeros(dim_x+dim_u)
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     first_time = True
     msg_state_predictions.Nstates = dim_x
     msg_state_predictions.Nhorizon = Nhor
-    msg_state_predictions.Nsamples = Nsamples
+    msg_state_predictions.Nrollouts = Nrollouts
     while True:
 
         # Displace historical observations one backwards in time and leave room for the current one:
@@ -114,7 +113,7 @@ if __name__ == "__main__":
         # Use model to predict past states up to the current one x(t) by starting at x(t-Nhor) and using the control sequence u(t-Nhor),u(t-Nhor+1),...,u(t-1)
         x_oldest = observations_hist[0,:] # The oldest observation is the first element in the history (FIFO sequence)
         u_seq = control_input_hist # We pass the entire sequence
-        x_hindcast = predict_with_model_fake(state_in=x_oldest,control_in=u_seq) # [Nsamples,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
+        x_hindcast = predict_with_model_fake(state_in=x_oldest,control_in=u_seq,Nrollouts=Nrollouts) # [Nrollouts,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
         loss_val_OoD = OoD_detection(observations_hist,x_hindcast)
 
         msg_state_predictions.predictions = np.reshape(x_hindcast,(-1))
