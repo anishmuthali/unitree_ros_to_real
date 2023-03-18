@@ -28,7 +28,6 @@ def predict_with_model_fake(state_in,control_in,Nrollouts):
     t_steps = np.arange(control_in.shape[0]+1) / control_in.shape[0]
     phase_vec = np.ones((len(t_steps),1))*np.array([[0.0, np.pi/4.0, np.pi/2.0]])
     freq_plus_phase = np.pi*2*np.reshape(t_steps,(-1,1)) + phase_vec
-    pdb.set_trace()
     
     state_out_base_states = np.sin(freq_plus_phase)
 
