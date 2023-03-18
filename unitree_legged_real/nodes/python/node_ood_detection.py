@@ -10,11 +10,16 @@ import rospy
 
 import unitree_legged_msgs.msg # Located at /home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/devel/lib/python3/dist-packages (this path is added automatically to the PYTHONPATH after doing 'source devel/setup.bash')
 import ood_gpssm_msgs.msg
+import nav_msgs.msg
+import geometry_msgs.msg
 
 msg_go1_state = ood_gpssm_msgs.msg.Go1State()
 msg_high_cmd = unitree_legged_msgs.msg.HighCmd()
 
-msg_go1_state = ood_gpssm_msgs.msg.Go1StatePredictions()
+msg_state_predictions = ood_gpssm_msgs.msg.Go1StatePredictions()
+
+msg_predictions_one = nav_msgs.msg.Path()
+
 
 
 def predict_with_model_fake(state_in,control_in,Nrollouts):
@@ -31,10 +36,24 @@ def predict_with_model_fake(state_in,control_in,Nrollouts):
     
     state_out_base_states = np.sin(freq_plus_phase)
 
-    state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + np.random.randn(Nrollouts,control_in.shape[0]+1,3)
+    state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + 0.0*np.random.randn(Nrollouts,control_in.shape[0]+1,3)
 
+    msg_predictions_one.header.frame_id = "base"
+    msg_predictions_one.header.stamp = rospy.Time.now()
+    msg_predictions_one.header.seq = state_out_base_rollouts.shape[1]+1
 
-    return state_out_base_rollouts
+    for tt in range(state_out_base_rollouts.shape[1]):
+        msg_predictions_one.poses = []
+        msg_new = geometry_msgs.msg.PoseStamped()
+        msg_new.header.frame_id = "base"
+        msg_new.header.stamp = rospy.Time.now()
+        msg_new.header.seq = tt + 1
+        msg_new.pose.position.x = state_out_base_rollouts[0,tt,0]
+        msg_new.pose.position.y = state_out_base_rollouts[0,tt,1]
+        msg_new.pose.position.z = 0.28
+        msg_predictions_one.poses += [msg_new]
+
+    return state_out_base_rollouts, msg_predictions_one
 
 
 def OoD_detection(observations_hist,x_hindcast):
@@ -76,9 +95,15 @@ if __name__ == "__main__":
 
 
     # Publish control command:
-    topic_high_cmd = "/experiments_gpssm_ood/robot_state_predictions"
+    topic_robot_state_predictions = "/experiments_gpssm_ood/robot_state_predictions"
     msg_state_predictions = ood_gpssm_msgs.msg.Go1StatePredictions()
-    pub_state_predictions = rospy.Publisher(topic_high_cmd, ood_gpssm_msgs.msg.Go1StatePredictions, queue_size=10)
+    pub_state_predictions = rospy.Publisher(topic_robot_state_predictions, ood_gpssm_msgs.msg.Go1StatePredictions, queue_size=10)
+
+
+    topic_robot_state_predictions_nav = "/experiments_gpssm_ood/robot_state_predictions_nav"
+    pub_state_predictions_nav = rospy.Publisher(topic_robot_state_predictions_nav, nav_msgs.msg.Path, queue_size=1)
+
+
 
     rospy.loginfo("Ready to start; press return to continue ...")
     input()
@@ -112,11 +137,13 @@ if __name__ == "__main__":
         # Use model to predict past states up to the current one x(t) by starting at x(t-Nhor) and using the control sequence u(t-Nhor),u(t-Nhor+1),...,u(t-1)
         x_oldest = observations_hist[0,:] # The oldest observation is the first element in the history (FIFO sequence)
         u_seq = control_input_hist # We pass the entire sequence
-        x_hindcast = predict_with_model_fake(state_in=x_oldest,control_in=u_seq,Nrollouts=Nrollouts) # [Nrollouts,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
+        x_hindcast, msg_predictions_one = predict_with_model_fake(state_in=x_oldest,control_in=u_seq,Nrollouts=Nrollouts) # [Nrollouts,Nhor,3]; the element x_hindcast[:,0,:] is assigned to x_oldest
         loss_val_OoD = OoD_detection(observations_hist,x_hindcast)
 
         msg_state_predictions.predictions = np.reshape(x_hindcast,(-1))
         pub_state_predictions.publish(msg_state_predictions)
+        
+        pub_state_predictions_nav.publish(msg_predictions_one)
 
         # # Selector index: it loops through the batch dimension in predictions_batch_hist:
         # tt_new = (tt + 1) % Nhor
