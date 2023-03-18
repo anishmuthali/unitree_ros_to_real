@@ -21,10 +21,15 @@ include_directories(
 set(CMAKE_CXX_FLAGS "-O3")
 
 # set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu VM)
-set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu, robot lab)
+#set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu, robot lab)
+
+
+set(SDK_LOCAL_PATH vicon_ws/src/unitree_legged_sdk_from_inside_robot) # eli added (Eli-Ubuntu-Laptop)
+
+
 
 include_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/include) # amarco edited
-link_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/lib) # amarco edited
+link_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/lib /usr/local/lib) # amarco edited
 string(CONCAT LEGGED_SDK_NAME libunitree_legged_sdk_amd64.so)
 set(EXTRA_LIBS ${LEGGED_SDK_NAME} lcm)
 
