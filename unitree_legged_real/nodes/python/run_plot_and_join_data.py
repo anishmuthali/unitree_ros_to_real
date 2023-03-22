@@ -51,9 +51,27 @@ if __name__ == "__main__":
 
 
 
-	plot_all(data,path2load,subsample_every_nr_steps=10)
-	# state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=10)
+
+
+	# plot_all(data,path2load,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990)
+	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990,name_file2save="joined_go1trajs_trimmed.pickle")
 	# pdb.set_trace()
+
+
+
+
+
+
+	# Copy data to remote server:
+	# scp -P 4444 -r data_experiments_go1/experiments_2023_03_13/joined_go1trajs_trimmed.pickle amarco@hybridrobotics.hopto.org:/home/amarco/code_projects/ood_project/ood/experiments/data_quadruped_experiments_03_13_2023/
+
+
+	# Copy data to ood project directory:
+	# cp data_experiments_go1/experiments_2023_03_13/joined_go1trajs_trimmed.pickle ~/work/code_projects_WIP/ood_project/ood/experiments/data_quadruped_experiments_03_13_2023/
+
+
+
+
 
 
 

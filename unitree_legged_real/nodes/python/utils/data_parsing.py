@@ -18,26 +18,36 @@ matplotlib.rc('text', usetex=False)
 # matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
 plt.rc('legend',fontsize=fontsize_labels+2)
 
-def load_data_and_cut(path2data,subsample_every_nr_steps=1):
+def load_data_and_cut(path2data,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 
 	print("Loading {0:s} ...".format(path2data))
 	file = open(path2data, 'rb')
 	data_dict = pickle.load(file)
 	file.close()
 
-	# Use time stamp to tell:
+	# Use time stamp to tell which elements are zero
+	# Why? When saving real experiments data, we pre-initialize the data arrays with zeroes to avoid dynamic allocation.
+	# If the experiment ends abruptly, the data matrix won't be filled completely; the last chunk will all be zeroes
+	# Here, we remove that last chunk
 	time_stamp = data_dict["time_stamp"]
 	if np.all(time_stamp != 0):
 		Ncut = time_stamp.shape[0]
 	else:
 		Ncut = np.arange(time_stamp.shape[0])[time_stamp[:,0] == 0][0]
-		# Ncut = Ncut - 10 # For experiments on 2023_03_13 because we were not resetting to zeros the data2save dictionary in node_data_collection.py
-		for key, val in data_dict.items():
-			data_dict[key] = val[0:Ncut:subsample_every_nr_steps,:]
+
+	# np.arange(time_stamp.shape[0])[time_stamp[:,0] > 10.0][0]
+
+	if Ncut_end is None:
+		Ncut_end = Ncut
+	else:
+		Ncut_end = min(Ncut,Ncut_end)
+		
+	for key, val in data_dict.items():
+		data_dict[key] = val[ind_beg:Ncut_end:subsample_every_nr_steps,:]
 
 	return data_dict
 
-def plot_all(data,path2load,subsample_every_nr_steps=1):
+def plot_all(data,path2load,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 
 	rate_freq_send_commands = 120 # Hz
 	deltaT = 1./rate_freq_send_commands
@@ -54,14 +64,14 @@ def plot_all(data,path2load,subsample_every_nr_steps=1):
 				state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=False) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
 			create_plots_from_scratch = hdl_splots_dict is None
-			hdl_splots_dict = plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps)
+			hdl_splots_dict = plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end)
 
 	plt.show(block=True)
 
-def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps=1):
+def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 
 	path2data = "{0:s}/{1:s}".format(path2load,name_file)
-	data_dict = load_data_and_cut(path2data,subsample_every_nr_steps)
+	data_dict = load_data_and_cut(path2data,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end)
 
 	time_stamp = data_dict["time_stamp"]
 	robot_pos = data_dict["robot_pos"]
@@ -150,10 +160,13 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 	return hdl_splots_dict
 
 
-def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=1):
+def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None,name_file2save="joined_go1trajs.pickle"):
 
 	state_and_control_curr_traj_list = []
 	state_next_traj_list = []
+
+	state_and_control_full_list = []
+	state_next_full_list = []
 	for traj_name, traj_dict in data.items():
 
 		name_file_list = data[traj_name]["name_file_list"]
@@ -163,7 +176,7 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 		for name_file in name_file_list:
 
 			path2data = "{0:s}/{1:s}".format(path2load,name_file)
-			data_dict = load_data_and_cut(path2data,subsample_every_nr_steps)
+			data_dict = load_data_and_cut(path2data,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end)
 			
 			time_stamp = data_dict["time_stamp"]
 			robot_pos = data_dict["robot_pos"]
@@ -176,6 +189,10 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 			state_and_control_curr_list += [np.concatenate([robot_pos[0:-1,0:2],robot_orientation[0:-1,2:3],vel_forward_des[0:-1,:],vel_yaw_des[0:-1,:]],axis=1)] # [state: (x,y,th), control=(u_for,u_ang)]
 			state_next_list += [np.concatenate([robot_pos[1::,0:2],robot_orientation[1::,2:3]],axis=1)]
 
+			# List to save:
+			state_and_control_full_list += [state_and_control_curr_list[-1]]
+			state_next_full_list += [state_next_list[-1]]
+
 		state_and_control_curr_traj_list += [np.concatenate(state_and_control_curr_list,axis=0)]
 		state_next_traj_list += [np.concatenate(state_next_list,axis=0)]
 
@@ -183,8 +200,8 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 	state_next_traj = np.concatenate(state_next_traj_list,axis=0)
 
 	if save_data_trajs_dict:
-		name_file2save = "joined_go1trajs.pickle"
-		data2save = dict(Xtrain=state_and_control_curr,Ytrain=state_next_traj)
+		data2save = dict(Xtrain=state_and_control_curr,Ytrain=state_next_traj,state_and_control_full_list=state_and_control_full_list,
+																										state_next_full_list=state_next_full_list)
 		path2save = path2load
 		path2save_full = "{0:s}/{1:s}".format(path2save,name_file2save)
 		print("Saving data at {0:s} ...".format(path2save_full))
