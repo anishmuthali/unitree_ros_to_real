@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     geometry_msgs
     unitree_legged_msgs
+    nav_msgs
 )
 
 catkin_package()
@@ -21,6 +22,7 @@ include_directories(
 set(CMAKE_CXX_FLAGS "-O3")
 
 # set(SDK_LOCAL_PATH mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu VM)
+# set(SDK_LOCAL_PATH vicon_ws/src/unitree_legged_sdk_from_inside_robot) # eli added (Eli-Ubuntu-Laptop)
 # set(SDK_LOCAL_PATH catkin_real_robot_ws/src/unitree_legged_sdk_from_inside_robot) # amarco added (amarco laptop - ubuntu, robot lab)
 
 # include_directories(/home/$ENV{USER}/${SDK_LOCAL_PATH}/include) # amarco edited
