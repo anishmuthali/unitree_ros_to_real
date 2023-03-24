@@ -54,10 +54,14 @@ if __name__ == "__main__":
 
 
     # path2save_root = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
-    path2save_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+    # path2save_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+
+    # Assuming you are in <path/to/catkin_ws>/src/unitree_ros_to_real/unitree_legged_real/nodes/python
+    path2save_root = "./data_experiments_go1"
 
     input("Enter experiments folder name!!!!")
-    folder_name_experiments = "experiments_2023_03_16"
+    # folder_name_experiments = "experiments_2023_03_16"
+    folder_name_experiments = "experiments_2023_03_24"
     path2save = "{0:s}/{1:s}".format(path2save_root,folder_name_experiments)
 
 

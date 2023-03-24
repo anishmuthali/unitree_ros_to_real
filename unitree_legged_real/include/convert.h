@@ -177,12 +177,12 @@ unitree_legged_msgs::HighState ToRos(UNITREE_LEGGED_SDK::HighState& lcm)
         ros.footForce[i] = lcm.footForce[i];
         ros.footForceEst[i] = lcm.footForceEst[i];
 
-        // DBG:
-        std::cout << "\nToRos():\n";
-        std::cout << "lcm.footForce[i]: " << lcm.footForce[i] << "\n";
-        std::cout << "lcm.footForceEst[i]: " << lcm.footForceEst[i] << "\n";
-        std::cout << "ros.footForce[i]: " << ros.footForce[i] << "\n";
-        std::cout << "ros.footForceEst[i]: " << ros.footForceEst[i] << "\n";
+        // // DBG:
+        // std::cout << "\nToRos():\n";
+        // std::cout << "lcm.footForce[i]: " << lcm.footForce[i] << "\n";
+        // std::cout << "lcm.footForceEst[i]: " << lcm.footForceEst[i] << "\n";
+        // std::cout << "ros.footForce[i]: " << ros.footForce[i] << "\n";
+        // std::cout << "ros.footForceEst[i]: " << ros.footForceEst[i] << "\n";
 
     }
 

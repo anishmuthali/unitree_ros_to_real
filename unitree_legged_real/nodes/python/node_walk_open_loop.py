@@ -89,20 +89,23 @@ def pos_controller(des_state,curr_state):
     
     des_state: [x,y,th]
     curr_state: [x,y,th]
+
+    des_vel_for: scalar
+    des_vec_yaw: scalar
     """
 
     Kp_vf = 10.0
     Kp_th = 10.0
 
     # Desired forward velocity:
-    des_vel_vec = Kp_vf * np.sqrt(np.sum((np.array(des_state[0],des_state[1]) - np.array(curr_state[0],curr_state[1]))**2))
+    des_vel_for = Kp_vf * np.sqrt(np.sum((np.array(des_state[0],des_state[1]) - np.array(curr_state[0],curr_state[1]))**2))
     
     # Desired yaw:
     des_ori_vec = np.array([np.cos(des_state[2]),np.sin(des_state[2])])
     curr_ori_vec = np.array([np.cos(curr_state[2]),np.sin(curr_state[2])])
-    des_vec_yaw = Kp_th * (des_ori_vec - curr_ori_vec)
+    des_vec_yaw = Kp_th * np.sum((des_ori_vec - curr_ori_vec))
 
-    return des_vel_vec, des_vec_yaw
+    return des_vel_for, des_vec_yaw
 
 if __name__ == "__main__":
 
@@ -158,7 +161,7 @@ if __name__ == "__main__":
 
     # state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
-    Nwaypoints = 20
+    Nwaypoints = 4
     xlim = [-1.5,1.5]
     ylim = [0.0,4.0]
     rate_freq_send_commands_for_trajs = rate_freq_send_commands # Hz
@@ -247,11 +250,9 @@ if __name__ == "__main__":
 
         # Position control:
         des_vel_vec, des_vec_yaw = pos_controller(des_state,curr_state)
-        msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Nsteps_tot,2]
-        msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Nsteps_tot,2]
+        msg_high_cmd.velocity[0] = des_vel_vec# desired linear velocity
+        msg_high_cmd.yawSpeed = des_vec_yaw # desired angular velocity
 
-
-        
         pub2high_cmd.publish(msg_high_cmd)
 
         ros_loop.sleep()
