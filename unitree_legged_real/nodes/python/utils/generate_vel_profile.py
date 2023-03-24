@@ -19,6 +19,34 @@ matplotlib.rc('text', usetex=False)
 plt.rc('legend',fontsize=fontsize_labels+2)
 
 
+def generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot,plotting):
+
+
+    deltaT = 1./rate_freq_send_commands
+
+    # Generate waypoints a bit away from each other:
+    pos_waypoints = np.zeros((Nwaypoints,2))
+    # Steer away 
+    waypoint_next = np.zeros(2)
+    rad = 1.0
+    too_close = True
+    for ii in range(1,Nwaypoints):
+
+        while too_close:
+            waypoint_next[0] = xlim[0] + np.diff(xlim)*np.random.rand(1)
+            waypoint_next[1] = ylim[0] + np.diff(ylim)*np.random.rand(1)
+            too_close = np.sum((waypoint_next-pos_waypoints[ii-1,...])**2) <= rad
+
+        pos_waypoints[ii,...] = waypoint_next
+        too_close = True
+
+    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=block_plot,plotting=plotting) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+    return state_tot, vel_tot
+
+
+
+
 def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=True,plotting=True):
     """
     
@@ -64,8 +92,8 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
         hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
 
         hdl_splots_data[2].plot(time_vec,state_tot[:,2],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[2].set_ylabel(r"$\theta$ [rad/s]",fontsize=fontsize_labels)
-        hdl_splots_data[2].set_title("Heading [rad]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_ylabel(r"$\theta$ [rad]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_title("Heading",fontsize=fontsize_labels)
 
         hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
         hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
@@ -79,6 +107,12 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
         hdl_splots_data.plot(state_tot[0,0],state_tot[0,1],marker=".",color="green",markersize=3)
         hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
         hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
+
+        # Plot all waypoints:
+        for pp in range(1,pos_waypoints.shape[0]-1):
+            hdl_splots_data.plot(pos_waypoints[pp,0],pos_waypoints[pp,1],marker=".",color="navy",markersize=7)
+
+        hdl_splots_data.set_aspect('equal', 'box')
 
         plt.show(block=block_plot)
         plt.pause(1.)

@@ -12,7 +12,7 @@ import matplotlib.colors as mcolors
 from matplotlib import cm
 import matplotlib
 
-from utils.generate_vel_profile import get_velocity_profile_given_waypoints
+from utils.generate_vel_profile import generate_random_set_of_waypoints
 
 markersize_x0 = 10
 markersize_trajs = 0.4
@@ -28,19 +28,16 @@ if __name__ == "__main__":
 
     """
     
+    export PYTHONPATH=$PYTHONPATH:/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python
     Run as  python test/test_generate_trajectories.py
-
     """
-
     np.random.seed(1)
 
-    rate_freq_send_commands = 100 # Hz
-    deltaT = 1./rate_freq_send_commands
+    Nwaypoints = 20
+    xlim = [-1.5,1.5]
+    ylim = [0.0,4.0]
+    rate_freq_send_commands = 120 # Hz
+    time_tot = Nwaypoints*5.0 # sec
 
-    time_tot = 15.0 # sec
-    pos_waypoints = np.array(   [[0.0,0.0],
-                                [1.5,1.5],
-                                [-1.5,2.5],
-                                [0.0,4.0]])
+    generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot=True,plotting=True)
 
-    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=True,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]

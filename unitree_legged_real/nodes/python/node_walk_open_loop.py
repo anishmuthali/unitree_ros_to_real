@@ -16,7 +16,7 @@ import matplotlib.colors as mcolors
 from matplotlib import cm
 import matplotlib
 
-from utils.generate_vel_profile import get_velocity_profile_given_waypoints
+from utils.generate_vel_profile import get_velocity_profile_given_waypoints, generate_random_set_of_waypoints
 
 markersize_x0 = 10
 markersize_trajs = 0.4
@@ -84,6 +84,25 @@ def go_home_heading(msg_high_cmd,pub2high_cmd,ros_loop,yaw_des,Nsteps_timeout):
     if abs(error) < tol_error: rospy.loginfo("Reached desired angle within required tolerance: {0:f} < {1:f} [rad]".format(abs(error),tol_error))
     
 
+def pos_controller(des_state,curr_state):
+    """
+    
+    des_state: [x,y,th]
+    curr_state: [x,y,th]
+    """
+
+    Kp_vf = 10.0
+    Kp_th = 10.0
+
+    # Desired forward velocity:
+    des_vel_vec = Kp_vf * np.sqrt(np.sum((np.array(des_state[0],des_state[1]) - np.array(curr_state[0],curr_state[1]))**2))
+    
+    # Desired yaw:
+    des_ori_vec = np.array([np.cos(des_state[2]),np.sin(des_state[2])])
+    curr_ori_vec = np.array([np.cos(curr_state[2]),np.sin(curr_state[2])])
+    des_vec_yaw = Kp_th * (des_ori_vec - curr_ori_vec)
+
+    return des_vel_vec, des_vec_yaw
 
 if __name__ == "__main__":
 
@@ -132,12 +151,23 @@ if __name__ == "__main__":
     # pos_waypoints = np.array(   [[0.0,0.0],
     #                             [-1.5,3.0]])
 
-    # Straight-traj-right_corner
-    time_tot = 7.5 # sec
-    pos_waypoints = np.array(   [[0.0,0.0],
-                                [1.0,3.0]])
+    # # Straight-traj-right_corner
+    # time_tot = 7.5 # sec
+    # pos_waypoints = np.array(   [[0.0,0.0],
+    #                             [1.0,3.0]])
 
-    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+    # state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=True) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+    Nwaypoints = 20
+    xlim = [-1.5,1.5]
+    ylim = [0.0,4.0]
+    rate_freq_send_commands_for_trajs = rate_freq_send_commands # Hz
+    time_tot = Nwaypoints*5.0 # sec
+
+    state_tot, vel_tot = generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands_for_trajs,time_tot,block_plot=False,plotting=True)
+    # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+    pdb.set_trace()
 
     if np.any(abs(vel_tot[:,0]) > 1.0):
         rospy.logerr("Trajectory not accepted; limit of 1 m/s reached. Try a larger time horizon. This program will terminate. Press return to terminate.")
@@ -196,15 +226,31 @@ if __name__ == "__main__":
 
     rospy.loginfo("Starting loop now!")
     tt = 0
+    curr_state = np.zeros(3)
+    des_state = np.zeros(3)
     while tt < Nsteps:
 
         # vel_des = vel_tot[tt,0]
         # vel_cur = np.sqrt(msg_go1_state.twist.linear.x**2 + msg_go1_state.twist.linear.y**2)
         # vel_send = vel_des + 1.0*(vel_des-vel_cur)
 
-        # msg_high_cmd.velocity[0] = vel_send
+        # # msg_high_cmd.velocity[0] = vel_send
+        # msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Nsteps_tot,2]
+        # msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Nsteps_tot,2]
+
+
+        curr_state[0] = msg_go1_state.position.x
+        curr_state[1] = msg_go1_state.position.y
+        curr_state[2] = msg_go1_state.orientation.z
+        
+        des_state[:] = state_tot[tt,:]
+
+        # Position control:
+        des_vel_vec, des_vec_yaw = pos_controller(des_state,curr_state)
         msg_high_cmd.velocity[0] = vel_tot[tt,0] # desired linear velocity || vel_tot: [Nsteps_tot,2]
         msg_high_cmd.yawSpeed = vel_tot[tt,1] # desired angular velocity || vel_tot: [Nsteps_tot,2]
+
+
         
         pub2high_cmd.publish(msg_high_cmd)
 
