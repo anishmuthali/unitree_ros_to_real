@@ -61,7 +61,8 @@ if __name__ == "__main__":
 
     input("Enter experiments folder name!!!!")
     # folder_name_experiments = "experiments_2023_03_16"
-    folder_name_experiments = "experiments_2023_03_24"
+    # folder_name_experiments = "experiments_2023_03_24"
+    folder_name_experiments = "experiments_2023_03_25"
     path2save = "{0:s}/{1:s}".format(path2save_root,folder_name_experiments)
 
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     rate_main_loop = 500 # Hz
     ros_loop = rospy.Rate(rate_main_loop) # Hz
 
-    time_max_data_collection = 300 # sec
+    time_max_data_collection = 400 # sec
     Nsteps_total = int(rate_main_loop*time_max_data_collection)
 
     rospy.loginfo("Data will be collected at ~{0:d} Hz ...".format(rate_main_loop))

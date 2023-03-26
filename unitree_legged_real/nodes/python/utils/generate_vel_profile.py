@@ -42,7 +42,7 @@ def generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_command
 
     state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=block_plot,plotting=plotting) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
-    return state_tot, vel_tot
+    return state_tot, vel_tot, pos_waypoints
 
 
 

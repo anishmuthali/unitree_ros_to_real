@@ -21,6 +21,7 @@ sudo apt-get install ros-${ROS_DISTRO}-tf
 
 http://wiki.ros.org/plotjuggler
 
+rosrun plotjuggler plotjuggler
 
 
 

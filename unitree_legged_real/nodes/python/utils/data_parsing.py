@@ -64,11 +64,11 @@ def plot_all(data,path2load,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 				state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=False) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
 
 			create_plots_from_scratch = hdl_splots_dict is None
-			hdl_splots_dict = plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end)
+			hdl_splots_dict = plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end,pos_waypoints=pos_waypoints)
 
 	plt.show(block=True)
 
-def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
+def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None,pos_waypoints=None):
 
 	path2data = "{0:s}/{1:s}".format(path2load,name_file)
 	data_dict = load_data_and_cut(path2data,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end)
@@ -139,6 +139,7 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 	hdl_splots_data[1].plot(time_stamp,robot_angular_velocity[:,2],lw=1,alpha=0.8,color="navy")
 	hdl_splots_data[1].plot(time_stamp,vel_yaw_des,lw=3,alpha=0.3,color="navy")
 	hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
+	hdl_splots_data[1].set_ylim([-2.0,2.0])
 
 	hdl_splots_data[-1].set_xlabel("time [sec]",fontsize=fontsize_labels)
 
@@ -152,10 +153,13 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 
 	hdl_splots_data.plot(robot_pos[:,0],robot_pos[:,1],lw=1.5,alpha=0.4,color="navy")
 	hdl_splots_data.plot(state_tot[:,0],state_tot[:,1],lw=3,alpha=0.2,color="crimson")
+	if pos_waypoints is not None:
+		for pp in range(pos_waypoints.shape[0]):
+			hdl_splots_data.plot(pos_waypoints[pp,0],pos_waypoints[pp,1],marker=".",color="navy",markersize=7)
 	hdl_splots_data.set_xlabel("x [m]",fontsize=fontsize_labels)
 	hdl_splots_data.set_ylabel("y [m]",fontsize=fontsize_labels)
 	hdl_splots_data.set_xlim([-3.0,+2.0])
-	hdl_splots_data.set_ylim([-1.0,5.0])
+	hdl_splots_data.set_ylim([-0.5,6.5])
 
 	return hdl_splots_dict
 
