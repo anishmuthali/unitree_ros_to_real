@@ -257,7 +257,7 @@ def main_experiments_2023_03_25():
 
 
 	data.update(batch_7=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_7"]["name_file_list"] += ["experiments_2023_03_25/2023_03_26_00_50_50_experiments_go1trajs.pickle"]
+	data["batch_7"]["name_file_list"] += ["2023_03_26_00_50_50_experiments_go1trajs.pickle"]
 
 
 	plot_all(data,path2load,subsample_every_nr_steps=10,ind_beg=0,Ncut_end=None)
