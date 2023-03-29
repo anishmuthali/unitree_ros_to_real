@@ -20,7 +20,7 @@ plt.rc('legend',fontsize=fontsize_labels+2)
 
 def load_data_and_cut(path2data,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 
-	print("Loading {0:s} ...".format(path2data))
+	print(" * Loading {0:s} ...".format(path2data))
 	file = open(path2data, 'rb')
 	data_dict = pickle.load(file)
 	file.close()
@@ -37,6 +37,12 @@ def load_data_and_cut(path2data,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=No
 
 	# np.arange(time_stamp.shape[0])[time_stamp[:,0] > 10.0][0]
 
+	print(" * We found [0:{0:d}] non-zero components in the data".format(Ncut))
+	if Ncut_end is not None: print("Requested chopping until {0:d} elements".format(Ncut_end))
+
+	# main_experiments_2023_03_25: Manuallly cut the last chunk where desired velocity is just zero
+	Ncut_end = Ncut - 600
+
 	if Ncut_end is None:
 		Ncut_end = Ncut
 	else:
@@ -45,9 +51,14 @@ def load_data_and_cut(path2data,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=No
 	for key, val in data_dict.items():
 		data_dict[key] = val[ind_beg:Ncut_end:subsample_every_nr_steps,:]
 
+	print(" * Data length after chopping and subsampling: {0:d}".format(data_dict[key].shape[0]))
+
 	return data_dict
 
 def plot_all(data,path2load,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
+
+	assert ind_beg >= 0
+	assert Ncut_end is None or Ncut_end > 0 
 
 	rate_freq_send_commands = 120 # Hz
 	deltaT = 1./rate_freq_send_commands
@@ -58,10 +69,14 @@ def plot_all(data,path2load,subsample_every_nr_steps=1,ind_beg=0,Ncut_end=None):
 		hdl_splots_dict = None
 		for name_file in name_file_list:
 
+
 			if hdl_splots_dict is None:
 				time_tot = data[traj_name]["time_tot"]
 				pos_waypoints = data[traj_name]["pos_waypoints"]
 				state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=False,plotting=False) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+			print(" * Plotting {0:s} ... | Nsteps: {1:d} | Nwaypoints: {2:d} | freq: {3:d} Hz".format(name_file,state_tot.shape[0],pos_waypoints.shape[0],rate_freq_send_commands))
+			print(" *                      Subsampling every {0:d} steps | Cutting data as [{1:d}:{2:d},:]".format(subsample_every_nr_steps,ind_beg,state_tot.shape[0] if Ncut_end is None else Ncut_end))
 
 			create_plots_from_scratch = hdl_splots_dict is None
 			hdl_splots_dict = plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_dict,state_tot,subsample_every_nr_steps,ind_beg=ind_beg,Ncut_end=Ncut_end,pos_waypoints=pos_waypoints)
@@ -81,7 +96,7 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 	vel_forward_des = data_dict["vel_forward_des"]
 	vel_yaw_des = data_dict["vel_yaw_des"]
 
-	# Velocity profiles:
+	# Position profiles:
 	if create_plots_from_scratch:
 		hdl_fig_data, hdl_splots_data = plt.subplots(3,2,figsize=(12,8),sharex=True)
 		hdl_fig_data.suptitle("Robot Pose (from Vicon)",fontsize=fontsize_labels)
@@ -91,13 +106,13 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 		hdl_splots_data = hdl_splots_dict["robot_pose"]
 
 
-	hdl_splots_data[0,0].plot(time_stamp,robot_pos[:,0],lw=1,alpha=0.3,color="navy")
-	hdl_splots_data[1,0].plot(time_stamp,robot_pos[:,1],lw=1,alpha=0.3,color="navy")
+	hdl_splots_data[0,0].plot(time_stamp,robot_pos[:,0],lw=1,alpha=0.3,color="navy",marker=".",markersize=2)
+	hdl_splots_data[1,0].plot(time_stamp,robot_pos[:,1],lw=1,alpha=0.3,color="navy",marker=".",markersize=2)
 	hdl_splots_data[2,0].plot(time_stamp,robot_pos[:,2],lw=1,alpha=0.3,color="navy")
 
 	hdl_splots_data[0,1].plot(time_stamp,robot_orientation[:,0],lw=1,alpha=0.3,color="navy")
 	hdl_splots_data[1,1].plot(time_stamp,robot_orientation[:,1],lw=1,alpha=0.3,color="navy")
-	hdl_splots_data[2,1].plot(time_stamp,robot_orientation[:,2],lw=1,alpha=0.3,color="navy")
+	hdl_splots_data[2,1].plot(time_stamp,robot_orientation[:,2],lw=1,alpha=0.3,color="navy",marker=".",markersize=2)
 
 	hdl_splots_data[-1,0].set_xlabel("time [sec]",fontsize=fontsize_labels)
 	hdl_splots_data[-1,1].set_xlabel("time [sec]",fontsize=fontsize_labels)
@@ -133,11 +148,11 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 
 	robot_vel_curr = np.sqrt(robot_vel[:,0]**2 + robot_vel[:,1]**2)
 	hdl_splots_data[0].plot(time_stamp,robot_vel_curr,lw=1,alpha=0.8,color="navy")
-	hdl_splots_data[0].plot(time_stamp,vel_forward_des,lw=3,alpha=0.3,color="navy")
+	hdl_splots_data[0].plot(time_stamp,vel_forward_des,lw=3,alpha=0.3,color="navy",marker=".",markersize=3)
 	hdl_splots_data[0].set_title("Forward velocity",fontsize=fontsize_labels)
 
 	hdl_splots_data[1].plot(time_stamp,robot_angular_velocity[:,2],lw=1,alpha=0.8,color="navy")
-	hdl_splots_data[1].plot(time_stamp,vel_yaw_des,lw=3,alpha=0.3,color="navy")
+	hdl_splots_data[1].plot(time_stamp,vel_yaw_des,lw=3,alpha=0.3,color="navy",marker=".",markersize=3)
 	hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
 	hdl_splots_data[1].set_ylim([-2.0,2.0])
 
@@ -151,8 +166,8 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 	else:
 		hdl_splots_data = hdl_splots_dict["robot_xy_position"]
 
-	hdl_splots_data.plot(robot_pos[:,0],robot_pos[:,1],lw=1.5,alpha=0.4,color="navy")
-	hdl_splots_data.plot(state_tot[:,0],state_tot[:,1],lw=3,alpha=0.2,color="crimson")
+	hdl_splots_data.plot(robot_pos[:,0],robot_pos[:,1],lw=1.5,alpha=0.4,color="navy") # actual
+	hdl_splots_data.plot(state_tot[:,0],state_tot[:,1],lw=3,alpha=0.2,color="crimson") # desired
 	if pos_waypoints is not None:
 		for pp in range(pos_waypoints.shape[0]):
 			hdl_splots_data.plot(pos_waypoints[pp,0],pos_waypoints[pp,1],marker=".",color="navy",markersize=7)
@@ -202,6 +217,53 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 
 	state_and_control_curr = np.concatenate(state_and_control_curr_traj_list,axis=0)
 	state_next_traj = np.concatenate(state_next_traj_list,axis=0)
+
+
+	# Detect bumps in orientation and discard those points:
+	cut_bumps = True
+	plot_and_block = False
+	if cut_bumps:
+
+		delta_state_next = state_next_traj - state_and_control_curr[:,0:3]
+
+		if plot_and_block:
+			hdl_fig_data, hdl_splots_data = plt.subplots(3,1,figsize=(12,8),sharex=True)
+			hdl_fig_data.suptitle("Detect bumps in orientation",fontsize=fontsize_labels)
+
+			hdl_splots_data[0].plot(delta_state_next[:,0],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # X
+			hdl_splots_data[1].plot(delta_state_next[:,1],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # Y
+			hdl_splots_data[2].plot(delta_state_next[:,2],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # th
+
+		ind_no_bumps = np.arange(delta_state_next.shape[0])[~(abs(delta_state_next[:,2]) > 0.5)]
+		state_and_control_curr = state_and_control_curr[ind_no_bumps,:]
+		state_next_traj = state_next_traj[ind_no_bumps,:]
+
+
+		if plot_and_block:
+			hdl_fig_data, hdl_splots_data = plt.subplots(3,1,figsize=(12,8),sharex=True)
+			hdl_fig_data.suptitle("Without bumps in orientation",fontsize=fontsize_labels)
+
+			delta_state_next = state_next_traj - state_and_control_curr[:,0:3]
+			hdl_splots_data[0].plot(delta_state_next[:,0],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # X
+			hdl_splots_data[1].plot(delta_state_next[:,1],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # Y
+			hdl_splots_data[2].plot(delta_state_next[:,2],lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # th
+
+
+			hdl_fig_data, hdl_splots_data = plt.subplots(3,1,figsize=(12,8),sharex=True)
+			hdl_fig_data.suptitle("Ordered deltas without bumps",fontsize=fontsize_labels)
+
+			delta_state_next = state_next_traj - state_and_control_curr[:,0:3]
+			hdl_splots_data[0].plot(np.sort(delta_state_next[:,0]),lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # X
+			hdl_splots_data[1].plot(np.sort(delta_state_next[:,1]),lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # Y
+			hdl_splots_data[2].plot(np.sort(delta_state_next[:,2]),lw=1.5,alpha=0.4,color="navy",marker=".",markersize=3) # th
+
+			plt.show(block=plot_and_block)
+
+
+	# Total length of data:
+	Nsteps_tot = delta_state_next.shape[0]
+	print(" * Dataset size: {0:d} state-action-state tuples".format(Nsteps_tot))
+
 
 	if save_data_trajs_dict:
 		data2save = dict(Xtrain=state_and_control_curr,Ytrain=state_next_traj,state_and_control_full_list=state_and_control_full_list,
