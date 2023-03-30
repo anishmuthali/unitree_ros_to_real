@@ -208,7 +208,7 @@ if __name__ == "__main__":
     Nwaypoints = pos_waypoints.shape[0]
     timeout = 5.0 # sec
     Nsteps_timeout = rate_freq_send_commands*timeout
-    Nloops = 1
+    Nloops = 5
     # while True:
     for _ in range(Nloops*Nwaypoints):
 

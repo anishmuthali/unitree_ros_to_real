@@ -304,34 +304,49 @@ def main_experiments_2023_03_29():
 								[-2.          ,3.        ]])
 
 
-	data.update(batch_1=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_1"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
+	# data.update(batch_1=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	# data["batch_1"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
 
 
-
-	data.update(batch_2=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_2"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
+	# data.update(batch_2=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	# data["batch_2"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
 
 	# Rope tied 1
-	data.update(batch_3=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_3"]["name_file_list"] += ["2023_03_29_16_41_01_experiments_go1trajs.pickle"]
+	data.update(batch_1=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_1"]["name_file_list"] += ["2023_03_29_16_41_01_experiments_go1trajs.pickle"]
 
 	# Rope tied 2
+	data.update(batch_2=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_2"]["name_file_list"] += ["2023_03_29_16_53_12_experiments_go1trajs.pickle"]
+
+	# No rope
+	data.update(batch_3=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_3"]["name_file_list"] += ["2023_03_29_17_05_51_experiments_go1trajs.pickle"]
+
+	# No rope
 	data.update(batch_4=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_4"]["name_file_list"] += ["2023_03_29_16_53_12_experiments_go1trajs.pickle"]
+	data["batch_4"]["name_file_list"] += ["2023_03_29_17_19_00_experiments_go1trajs.pickle"]
 
-	# No rope
+	# Rocky terrain
 	data.update(batch_5=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_5"]["name_file_list"] += ["2023_03_29_17_05_51_experiments_go1trajs.pickle"]
+	data["batch_5"]["name_file_list"] += ["2023_03_29_17_58_20_experiments_go1trajs.pickle"]
 
-	# No rope
+	# Rocky terrain
 	data.update(batch_6=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
-	data["batch_6"]["name_file_list"] += ["2023_03_29_17_19_00_experiments_go1trajs.pickle"]
+	data["batch_6"]["name_file_list"] += ["2023_03_29_18_18_12_experiments_go1trajs.pickle"]
+
+	# Poking
+	data.update(batch_7=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_7"]["name_file_list"] += ["2023_03_29_18_47_21_experiments_go1trajs.pickle"]
+
 
 	data.pop("batch_1")
 	data.pop("batch_2")
 	data.pop("batch_3")
 	data.pop("batch_4")
+	data.pop("batch_5")
+	data.pop("batch_6")
+	data.pop("batch_7")
 
 	# Data comes at 500 Hz
 	# We subsample at 10 Hz
