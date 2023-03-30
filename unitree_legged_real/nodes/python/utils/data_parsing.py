@@ -175,7 +175,7 @@ def plot_single_file(path2load,name_file,create_plots_from_scratch,hdl_splots_di
 	hdl_splots_data.set_ylabel("y [m]",fontsize=fontsize_labels)
 	hdl_splots_data.set_xlim([-3.0,+2.0])
 	hdl_splots_data.set_ylim([-0.5,6.5])
-
+	hdl_splots_data.set_aspect("equal","box")
 	return hdl_splots_dict
 
 

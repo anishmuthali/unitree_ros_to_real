@@ -15,7 +15,7 @@ import matplotlib.colors as mcolors
 from matplotlib import cm
 import matplotlib
 
-from utils.generate_vel_profile import get_velocity_profile_given_waypoints, generate_random_set_of_waypoints
+from utils.generate_vel_profile import get_velocity_profile_given_waypoints, generate_random_set_of_waypoints, generate_waypoints_in_circle
 
 markersize_x0 = 10
 markersize_trajs = 0.4
@@ -82,7 +82,7 @@ def go2next_waypoint(waypoint_new,msg_high_cmd,pub2high_cmd,ros_loop,Nsteps_time
 
         # Are we there yet?
         error_pos = np.sqrt(np.sum(direction**2))
-        rospy.loginfo("error_pos: {0:2.2f}".format(error_pos))
+        if tt % 120 == 0: rospy.loginfo("error_pos: {0:2.2f}".format(error_pos))
 
         # Read current yaw angle:
         yaw_curr = msg_go1_state.orientation.z # w.r.t Vicon frame
@@ -150,7 +150,9 @@ if __name__ == "__main__":
     rate_freq_send_commands_for_trajs = rate_freq_send_commands # Hz
     time_tot = Nwaypoints*10.0 # sec
 
-    _, _, pos_waypoints = generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands_for_trajs,time_tot,block_plot=False,plotting=True)
+    # _, _, pos_waypoints = generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands_for_trajs,time_tot,block_plot=False,plotting=True)
+
+    pos_waypoints = generate_waypoints_in_circle(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot=False,plotting=True)
 
 
     print("time_tot: {0:f}".format(time_tot))
@@ -204,15 +206,19 @@ if __name__ == "__main__":
     ww = 0
     curr_state = np.zeros(3)
     Nwaypoints = pos_waypoints.shape[0]
-    timeout = 20.0 # sec
+    timeout = 5.0 # sec
     Nsteps_timeout = rate_freq_send_commands*timeout
-    for ww in range(Nwaypoints):
+    Nloops = 1
+    # while True:
+    for _ in range(Nloops*Nwaypoints):
 
         curr_state[0] = msg_go1_state.position.x
         curr_state[1] = msg_go1_state.position.y
         curr_state[2] = msg_go1_state.orientation.z
         
         go2next_waypoint(pos_waypoints[ww,:],msg_high_cmd,pub2high_cmd,ros_loop,Nsteps_timeout,deltaT)
+
+        ww = (ww+1) % Nwaypoints
 
 
 

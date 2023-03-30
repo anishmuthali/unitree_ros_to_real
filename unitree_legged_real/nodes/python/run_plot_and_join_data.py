@@ -5,8 +5,8 @@ import pickle
 from utils.data_parsing import plot_all, join_data
 
 # path2load_root = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
-# path2load_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
-path2load_root = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
+path2load_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+# path2load_root = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
 
 
 
@@ -271,10 +271,79 @@ def main_experiments_2023_03_25():
 	# state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=50,ind_beg=1250,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_25.pickle")
 
 
+
+
+def main_experiments_2023_03_29():
+
+
+
+	folder_name_experiments = "experiments_2023_03_29"
+	path2load = "{0:s}/{1:s}".format(path2load_root,folder_name_experiments)
+	data = dict()
+
+
+	pos_waypoints = np.array([[-1.92658477  ,2.53647451],
+								[-1.71352549  ,2.11832212],
+								[-1.38167788  ,1.78647451],
+								[-0.96352549  ,1.57341523],
+								[-0.5         ,1.5       ],
+								[-0.03647451  ,1.57341523],
+								[ 0.38167788  ,1.78647451],
+								[ 0.71352549  ,2.11832212],
+								[ 0.92658477  ,2.53647451],
+								[ 1.          ,3.        ],
+								[ 0.92658477  ,3.46352549],
+								[ 0.71352549  ,3.88167788],
+								[ 0.38167788  ,4.21352549],
+								[-0.03647451  ,4.42658477],
+								[-0.5         ,4.5       ],
+								[-0.96352549  ,4.42658477],
+								[-1.38167788  ,4.21352549],
+								[-1.71352549  ,3.88167788],
+								[-1.92658477  ,3.46352549],
+								[-2.          ,3.        ]])
+
+
+	data.update(batch_1=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_1"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
+
+
+
+	data.update(batch_2=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_2"]["name_file_list"] += ["2023_03_29_15_54_24_experiments_go1trajs.pickle"]
+
+	# Rope tied 1
+	data.update(batch_3=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_3"]["name_file_list"] += ["2023_03_29_16_41_01_experiments_go1trajs.pickle"]
+
+	# Rope tied 2
+	data.update(batch_4=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_4"]["name_file_list"] += ["2023_03_29_16_53_12_experiments_go1trajs.pickle"]
+
+	# No rope
+	data.update(batch_5=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_5"]["name_file_list"] += ["2023_03_29_17_05_51_experiments_go1trajs.pickle"]
+
+	# No rope
+	data.update(batch_6=dict(name_file_list=[],time_tot=200.0,pos_waypoints=pos_waypoints))
+	data["batch_6"]["name_file_list"] += ["2023_03_29_17_19_00_experiments_go1trajs.pickle"]
+
+	data.pop("batch_1")
+	data.pop("batch_2")
+	data.pop("batch_3")
+	data.pop("batch_4")
+
+	# Data comes at 500 Hz
+	# We subsample at 10 Hz
+	plot_all(data,path2load,subsample_every_nr_steps=50,ind_beg=0,Ncut_end=None)
+	# state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=50,ind_beg=1250,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_25.pickle")
+
+
+
 if __name__ == "__main__":
 
 	# main_experiments_2023_03_13()
 
-	main_experiments_2023_03_25()
+	main_experiments_2023_03_29()
 
 

@@ -19,6 +19,62 @@ matplotlib.rc('text', usetex=False)
 plt.rc('legend',fontsize=fontsize_labels+2)
 
 
+
+def generate_waypoints_in_circle(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot,plotting):
+
+
+    deltaT = 1./rate_freq_send_commands
+
+    # Divide circle in Nwaypoints parts:
+    theta_vec = np.linspace(0.0,2.*math.pi,Nwaypoints+1)
+
+    # Remove the last one because 0 is same as 2pi
+    theta_vec = theta_vec[0:-1]
+    theta_vec = np.reshape(theta_vec,(-1,1))
+
+    radius = 1.5
+
+    # Waypoints:
+    x_pos = radius*np.cos(theta_vec)
+    y_pos = radius*np.sin(theta_vec)
+
+    # Shift the circle so that the lowest point is near (0,0)
+    y_pos = y_pos + abs(np.amin(y_pos)) + 1.5
+
+    x_pos = x_pos + -0.5
+
+    pos_waypoints = np.concatenate([x_pos,y_pos],axis=1)
+
+
+    # We want the first point to be the one at ind_first:
+    ind_first = Nwaypoints//2 +1
+    # pdb.set_trace()
+    pos_waypoints_aux = np.concatenate([pos_waypoints,pos_waypoints],axis=0)
+    pos_waypoints_new = pos_waypoints_aux[ind_first:ind_first+Nwaypoints]
+
+    # pdb.set_trace()
+
+
+    if plotting:
+        hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(6,6),sharex=True)
+
+        hdl_splots_data.plot(pos_waypoints_new[:,0],pos_waypoints_new[:,1],marker="o",markersize=8,color="crimson",alpha=0.5,linestyle="None")
+        hdl_splots_data.plot(pos_waypoints_new[0,0],pos_waypoints_new[0,1],marker="o",markersize=8,color="navy",alpha=0.5,linestyle="None")
+        hdl_splots_data.set_aspect("equal","box")
+        hdl_splots_data.set_xlim(xlim)
+        hdl_splots_data.set_ylim(ylim)
+
+        plt.show(block=block_plot)
+
+
+        plt.pause(0.1)
+
+    return pos_waypoints_new
+
+
+
+
+
 def generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot,plotting):
 
 
