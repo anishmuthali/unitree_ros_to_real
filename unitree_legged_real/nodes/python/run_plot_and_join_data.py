@@ -5,8 +5,8 @@ import pickle
 from utils.data_parsing import plot_all, join_data
 
 # path2load_root = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
-path2load_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
-# path2load_root = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
+# path2load_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+path2load_root = "/Users/alonrot/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # mac
 
 
 
@@ -346,12 +346,14 @@ def main_experiments_2023_03_29():
 	data.pop("batch_4")
 	data.pop("batch_5")
 	data.pop("batch_6")
-	data.pop("batch_7")
+	# data.pop("batch_7")
+
+
 
 	# Data comes at 500 Hz
 	# We subsample at 10 Hz
-	plot_all(data,path2load,subsample_every_nr_steps=50,ind_beg=0,Ncut_end=None)
-	# state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=50,ind_beg=1250,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_25.pickle")
+	# plot_all(data,path2load,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None)
+	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_29_circle_poking.pickle")
 
 
 
