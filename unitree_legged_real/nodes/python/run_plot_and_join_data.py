@@ -56,8 +56,8 @@ def main_experiments_2023_03_13():
 
 
 
-	# plot_all(data,path2load,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990)
-	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990,name_file2save="joined_go1trajs_trimmed.pickle")
+	plot_all(data,path2load,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990)
+	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=False,subsample_every_nr_steps=10,ind_beg=1500,Ncut_end=4990,name_file2save="joined_go1trajs_trimmed.pickle")
 	# pdb.set_trace()
 
 
@@ -342,18 +342,18 @@ def main_experiments_2023_03_29():
 
 	data.pop("batch_1")
 	data.pop("batch_2")
-	data.pop("batch_3")
-	data.pop("batch_4")
+	# data.pop("batch_3")
+	# data.pop("batch_4")
 	data.pop("batch_5")
 	data.pop("batch_6")
-	# data.pop("batch_7")
+	data.pop("batch_7")
 
 
 
 	# Data comes at 500 Hz
 	# We subsample at 10 Hz
-	# plot_all(data,path2load,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None)
-	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=True,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_29_circle_poking.pickle")
+	plot_all(data,path2load,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None)
+	state_and_control_curr, state_next_traj = join_data(data,path2load,save_data_trajs_dict=False,subsample_every_nr_steps=50,ind_beg=2000,Ncut_end=None,name_file2save="joined_go1trajs_trimmed_2023_03_29_circle_poking.pickle")
 
 
 

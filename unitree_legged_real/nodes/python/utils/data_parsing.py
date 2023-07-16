@@ -221,7 +221,7 @@ def join_data(data,path2load,save_data_trajs_dict=None,subsample_every_nr_steps=
 
 	# Detect bumps in orientation and discard those points:
 	cut_bumps = True
-	plot_and_block = False
+	plot_and_block = True
 	if cut_bumps:
 
 		delta_state_next = state_next_traj - state_and_control_curr[:,0:3]
