@@ -36,22 +36,26 @@ def predict_with_model_fake(state_in,control_in,Nrollouts):
     
     state_out_base_states = np.sin(freq_plus_phase)
 
-    state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + 0.0*np.random.randn(Nrollouts,control_in.shape[0]+1,3)
+    state_out_base_rollouts = np.reshape(state_out_base_states,(1,control_in.shape[0]+1,3)) + 0.01*np.random.randn(Nrollouts,control_in.shape[0]+1,3)
+    # state_out_base_rollouts: [Nrollouts,Nhor,dim_out]
 
-    msg_predictions_one.header.frame_id = "base"
+    msg_predictions_one.header.frame_id = "base_link"
     msg_predictions_one.header.stamp = rospy.Time.now()
     msg_predictions_one.header.seq = state_out_base_rollouts.shape[1]+1
 
+    # Following in one rollout for now:
+    rr = 0
+    msg_predictions_one.poses = []
     for tt in range(state_out_base_rollouts.shape[1]):
-        msg_predictions_one.poses = []
         msg_new = geometry_msgs.msg.PoseStamped()
-        msg_new.header.frame_id = "base"
+        msg_new.header.frame_id = "roll{0:d}_tt{1:d}".format(rr,tt)
         msg_new.header.stamp = rospy.Time.now()
         msg_new.header.seq = tt + 1
-        msg_new.pose.position.x = state_out_base_rollouts[0,tt,0]
-        msg_new.pose.position.y = state_out_base_rollouts[0,tt,1]
+        msg_new.pose.position.x = state_out_base_rollouts[rr,tt,0]
+        msg_new.pose.position.y = state_out_base_rollouts[rr,tt,1]
         msg_new.pose.position.z = 0.28
         msg_predictions_one.poses += [msg_new]
+    # pdb.set_trace()
 
     return state_out_base_rollouts, msg_predictions_one
 
@@ -143,6 +147,11 @@ if __name__ == "__main__":
         msg_state_predictions.predictions = np.reshape(x_hindcast,(-1))
         pub_state_predictions.publish(msg_state_predictions)
         
+        # pdb.set_trace()
+        # print("msg_predictions_one.poses[0].pose.position.x: {0:f}".format(msg_predictions_one.poses[0].pose.position.x))
+        print("msg_predictions_one.poses[1].pose.position.x: {0:f}".format(msg_predictions_one.poses[1].pose.position.x))
+        # print("msg_predictions_one.poses[2].pose.position.x: {0:f}".format(msg_predictions_one.poses[2].pose.position.x))
+
         pub_state_predictions_nav.publish(msg_predictions_one)
 
         # # Selector index: it loops through the batch dimension in predictions_batch_hist:
