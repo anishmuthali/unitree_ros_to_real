@@ -30,17 +30,41 @@ def callback_data_collection(msg_in):
         rospy.loginfo("Received message to STOP data collection")
 
 def callback_cmd_high(msg_in):
+    global msg_high_cmd
     msg_high_cmd = msg_in
 
 def callback_go1_state(msg_in):
+    global msg_go1_state
     msg_go1_state = msg_in
+
+def reset_data_structure(Nsteps_total):
+
+    data2save = dict(   robot_pos=np.zeros((Nsteps_total,3)),\
+                        robot_vel=np.zeros((Nsteps_total,3)),\
+                        robot_orientation=np.zeros((Nsteps_total,3)),\
+                        robot_angular_velocity=np.zeros((Nsteps_total,3)),\
+                        vel_forward_des=np.zeros((Nsteps_total,1)),\
+                        vel_yaw_des=np.zeros((Nsteps_total,1)),\
+                        time_stamp=np.zeros((Nsteps_total,1)))
+
+    return data2save
 
 
 if __name__ == "__main__":
 
 
-    path2save = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
-    # path2save = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+    # path2save_root = "/home/ubuntu/mounted_home/work/code_projects_WIP/catkin_real_robot_ws/src/unitree_ros_to_real_forked/unitree_legged_real/nodes/python/data_experiments_go1" # ubuntu VM
+    # path2save_root = "/home/amarco/catkin_real_robot_ws/src/unitree_ros_to_real/unitree_legged_real/nodes/python/data_experiments_go1" # robot's laptop
+
+    # Assuming you are in <path/to/catkin_ws>/src/unitree_ros_to_real/unitree_legged_real/nodes/python
+    path2save_root = "./data_experiments_go1"
+
+    input("Enter experiments folder name!!!!")
+    # folder_name_experiments = "experiments_2023_03_16"
+    # folder_name_experiments = "experiments_2023_03_24"
+    # folder_name_experiments = "experiments_2023_03_25"
+    folder_name_experiments = "experiments_2023_03_29"
+    path2save = "{0:s}/{1:s}".format(path2save_root,folder_name_experiments)
 
 
     # rostopic pub --once /experiments_gpssm_ood/data_collection_triggers ood_gpssm_msgs/DataCollection '{start: True}'
@@ -52,7 +76,7 @@ if __name__ == "__main__":
     rate_main_loop = 500 # Hz
     ros_loop = rospy.Rate(rate_main_loop) # Hz
 
-    time_max_data_collection = 300 # sec
+    time_max_data_collection = 600 # sec
     Nsteps_total = int(rate_main_loop*time_max_data_collection)
 
     rospy.loginfo("Data will be collected at ~{0:d} Hz ...".format(rate_main_loop))
@@ -68,13 +92,7 @@ if __name__ == "__main__":
     rospy.Subscriber(topic_robot_state, ood_gpssm_msgs.msg.Go1State, callback_go1_state)
 
 
-    data2save = dict(   robot_pos=np.zeros((Nsteps_total,3)),\
-                        robot_vel=np.zeros((Nsteps_total,3)),\
-                        robot_orientation=np.zeros((Nsteps_total,3)),\
-                        robot_angular_velocity=np.zeros((Nsteps_total,3)),\
-                        vel_forward_des=np.zeros((Nsteps_total,1)),\
-                        vel_yaw_des=np.zeros((Nsteps_total,1)),\
-                        time_stamp=np.zeros((Nsteps_total,1)))
+    data2save = reset_data_structure(Nsteps_total)
 
 
     collect_data_on = False
@@ -94,6 +112,7 @@ if __name__ == "__main__":
             rospy.loginfo("Data collection was already requested and data is currently being collected...")
         elif msg_data_collection.start == True:
             rospy.loginfo("Starting data collection!")
+            data2save = reset_data_structure(Nsteps_total)
             msg_data_collection.start = False
             collect_data_on = True
             time_start = time.time()

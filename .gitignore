@@ -2,3 +2,5 @@
 __pycache__/
 *.pickle
 *.key
+.DS_Store
+data_experiments_go1/experiments_2023_03_13/

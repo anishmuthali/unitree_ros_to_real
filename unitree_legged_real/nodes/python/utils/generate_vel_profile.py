@@ -9,8 +9,6 @@ from .min_jerk_gen import min_jerk
 import matplotlib.pyplot as plt
 import matplotlib
 
-import rospy
-
 markersize_x0 = 10
 markersize_trajs = 0.4
 fontsize_labels = 25
@@ -19,6 +17,90 @@ matplotlib.rc('ytick', labelsize=fontsize_labels)
 matplotlib.rc('text', usetex=False)
 # matplotlib.rc('font',**{'family':'serif','serif':['Computer Modern Roman']})
 plt.rc('legend',fontsize=fontsize_labels+2)
+
+
+
+def generate_waypoints_in_circle(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot,plotting):
+
+
+    deltaT = 1./rate_freq_send_commands
+
+    # Divide circle in Nwaypoints parts:
+    theta_vec = np.linspace(0.0,2.*math.pi,Nwaypoints+1)
+
+    # Remove the last one because 0 is same as 2pi
+    theta_vec = theta_vec[0:-1]
+    theta_vec = np.reshape(theta_vec,(-1,1))
+
+    radius = 1.5
+
+    # Waypoints:
+    x_pos = radius*np.cos(theta_vec)
+    y_pos = radius*np.sin(theta_vec)
+
+    # Shift the circle so that the lowest point is near (0,0)
+    y_pos = y_pos + abs(np.amin(y_pos)) + 1.5
+
+    x_pos = x_pos + -0.5
+
+    pos_waypoints = np.concatenate([x_pos,y_pos],axis=1)
+
+
+    # We want the first point to be the one at ind_first:
+    ind_first = Nwaypoints//2 +1
+    # pdb.set_trace()
+    pos_waypoints_aux = np.concatenate([pos_waypoints,pos_waypoints],axis=0)
+    pos_waypoints_new = pos_waypoints_aux[ind_first:ind_first+Nwaypoints]
+
+    # pdb.set_trace()
+
+
+    if plotting:
+        hdl_fig_data, hdl_splots_data = plt.subplots(1,1,figsize=(6,6),sharex=True)
+
+        hdl_splots_data.plot(pos_waypoints_new[:,0],pos_waypoints_new[:,1],marker="o",markersize=8,color="crimson",alpha=0.5,linestyle="None")
+        hdl_splots_data.plot(pos_waypoints_new[0,0],pos_waypoints_new[0,1],marker="o",markersize=8,color="navy",alpha=0.5,linestyle="None")
+        hdl_splots_data.set_aspect("equal","box")
+        hdl_splots_data.set_xlim(xlim)
+        hdl_splots_data.set_ylim(ylim)
+
+        plt.show(block=block_plot)
+
+
+        plt.pause(0.1)
+
+    return pos_waypoints_new
+
+
+
+
+
+def generate_random_set_of_waypoints(Nwaypoints,xlim,ylim,rate_freq_send_commands,time_tot,block_plot,plotting):
+
+
+    deltaT = 1./rate_freq_send_commands
+
+    # Generate waypoints a bit away from each other:
+    pos_waypoints = np.zeros((Nwaypoints,2))
+    # Steer away 
+    waypoint_next = np.zeros(2)
+    rad = 1.0
+    too_close = True
+    for ii in range(1,Nwaypoints):
+
+        while too_close:
+            waypoint_next[0] = xlim[0] + np.diff(xlim)*np.random.rand(1)
+            waypoint_next[1] = ylim[0] + np.diff(ylim)*np.random.rand(1)
+            too_close = np.sum((waypoint_next-pos_waypoints[ii-1,...])**2) <= rad
+
+        pos_waypoints[ii,...] = waypoint_next
+        too_close = True
+
+    state_tot, vel_tot = get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=block_plot,plotting=plotting) # state_tot: [Nsteps_tot,2] || vel_tot: [Nsteps_tot,2]
+
+    return state_tot, vel_tot, pos_waypoints
+
+
 
 
 def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plot=True,plotting=True):
@@ -31,13 +113,10 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
     Ytrain: [(Nsteps-3)*Ntrajs, dim_x]
     """
 
-    # Trajectory duration:
-    time_tot = 5.0 # sec
-
     # Number of steps:
     Nsteps = int(time_tot/deltaT)
     Nsteps_tot = Nsteps + 2 # We add 2 because numerical differentiation will suppress 2 points
-    rospy.loginfo("Generating trajectory ...")
+    print(" * Generating trajectory ...")
     pos_profile,_ = min_jerk(pos=pos_waypoints, dur=Nsteps_tot, vel=None, acc=None, psg=None) # [Nsteps_tot, D]
 
     # Velocity profiles and heading with numerical differentiation:
@@ -69,8 +148,8 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
         hdl_splots_data[1].set_title("Angular velocity",fontsize=fontsize_labels)
 
         hdl_splots_data[2].plot(time_vec,state_tot[:,2],lw=1,alpha=0.3,color="navy")
-        hdl_splots_data[2].set_ylabel(r"$\theta$ [rad/s]",fontsize=fontsize_labels)
-        hdl_splots_data[2].set_title("Heading [rad]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_ylabel(r"$\theta$ [rad]",fontsize=fontsize_labels)
+        hdl_splots_data[2].set_title("Heading",fontsize=fontsize_labels)
 
         hdl_splots_data[-1].set_xlabel(r"$t$ [sec]",fontsize=fontsize_labels)
         hdl_splots_data[-1].set_xlim([time_vec[0],time_vec[-1]])
@@ -84,6 +163,12 @@ def get_velocity_profile_given_waypoints(pos_waypoints,deltaT,time_tot,block_plo
         hdl_splots_data.plot(state_tot[0,0],state_tot[0,1],marker=".",color="green",markersize=3)
         hdl_splots_data.set_xlabel(r"$x$ [m]",fontsize=fontsize_labels)
         hdl_splots_data.set_ylabel(r"$y$ [m]",fontsize=fontsize_labels)
+
+        # Plot all waypoints:
+        for pp in range(1,pos_waypoints.shape[0]-1):
+            hdl_splots_data.plot(pos_waypoints[pp,0],pos_waypoints[pp,1],marker=".",color="navy",markersize=7)
+
+        hdl_splots_data.set_aspect('equal', 'box')
 
         plt.show(block=block_plot)
         plt.pause(1.)
