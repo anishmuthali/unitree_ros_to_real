@@ -79,11 +79,13 @@ if __name__ == "__main__":
     msg_high_cmd.bodyHeight = 0.0 # # (unit: m) -> WARNING: This is NOT an absolute position w.r.t the ground, but rather w.r.t the current height....
     msg_high_cmd.yawSpeed = 0.0
 
-    print("Sleeping for 1 second ...")
-    time.sleep(1.0) # Wait a bit for the message to propagate
+    # print("Sleeping for 1 second ...")
+    # time.sleep(1.0)
         
-    rospy.loginfo("Starting new ROS loop")
-
+    rospy.loginfo("Ready to start the movement. The robot will walk forward at a low pace for {0:2.1f} seconds".format(time_tot))
+    rospy.loginfo("Make sure there are no obstacles in front of the robot")
+    rospy.loginfo("Ready to start the movement. Press enter to continue ...")
+    input()
 
     Nsteps_timeout = int(time_tot * rate_freq_send_commands)
     walk_with_fixed_vel(msg_high_cmd,pub2high_cmd,ros_loop,Nsteps_timeout)
