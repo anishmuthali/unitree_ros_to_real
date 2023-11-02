@@ -1,7 +1,9 @@
 /************************************************************************
-Copyright (c) 2018-2019, Unitree Robotics.Co.Ltd. All rights reserved.
-Use of this source code is governed by the MPL-2.0 license, see LICENSE.
+*
+* @author Alonso Marco
+* Contact: amarco@berkeley.edu
 ************************************************************************/
+
 
 #include <ros/ros.h>
 #include <string>
