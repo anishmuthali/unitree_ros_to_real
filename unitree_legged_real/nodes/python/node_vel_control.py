@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     rate_freq_send_commands = 120 # Hz
  
-    time_tot = 3.0 # sec
+    time_tot = 4.0 # sec
 
     print("time_tot: {0:f}".format(time_tot))
 
