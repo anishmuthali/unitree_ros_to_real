@@ -58,8 +58,14 @@ set(EXTRA_LIBS ${LEGGED_SDK_NAME} lcm)
 
 # add_executable(ros_real_robot_interface_go1_highlevel /home/$ENV{USER}/${SDK_LOCAL_PATH}/python_interface_go1/src/real_robot_interface_go1_highlevel.cpp nodes/ros_real_robot_interface_go1_highlevel.cpp)
 add_executable(ros_real_robot_interface_go1_highlevel ../../unitree_legged_sdk_from_inside_robot/python_interface_go1/src/real_robot_interface_go1_highlevel.cpp nodes/ros_real_robot_interface_go1_highlevel.cpp)
+add_executable(ros_wireless_controller ../../unitree_legged_sdk_from_inside_robot/python_interface_go1/src/real_robot_interface_go1_highlevel.cpp nodes/ros_wireless_controller.cpp)
+add_executable(example_walk nodes/example_walk.cpp)
 target_link_libraries(ros_real_robot_interface_go1_highlevel ${EXTRA_LIBS} ${catkin_LIBRARIES})
+target_link_libraries(ros_wireless_controller ${EXTRA_LIBS} ${catkin_LIBRARIES})
+target_link_libraries(example_walk ${EXTRA_LIBS} ${catkin_LIBRARIES})
 add_dependencies(ros_real_robot_interface_go1_highlevel ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(ros_wireless_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(example_walk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 
